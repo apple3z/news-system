@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理 v2.5 - newsystem</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #f5f5f5; }
+        .sidebar { width: 280px; height: 100vh; background: #2c3e50; color: #ecf0f1; overflow-y: auto; position: fixed; left: 0; top: 0; }
+        .sidebar h2 { padding: 20px; font-size: 18px; border-bottom: 1px solid #34495e; }
+        .version-tree { padding: 10px 0; }
+        .version-item { padding: 10px 15px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; }
+        .version-item:hover { background: #34495e; }
+        .version-item.active { background: #3498db; border-left-color: #2980b9; }
+        .version-item .count { font-size: 12px; opacity: 0.6; float: right; }
+        .main { margin-left: 280px; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #34495e; }
+        .header h1 { color: #2c3e50; }
+        .toolbar button { padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .toolbar button:hover { background: #2980b9; }
+        .editor-container { display: flex; gap: 20px; height: calc(100vh - 120px); }
+        .doc-list { width: 250px; background: white; border-radius: 6px; overflow: hidden; }
+        .doc-list h3 { padding: 15px; background: #ecf0f1; border-bottom: 1px solid #bdc3c7; }
+        .doc-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #ecf0f1; transition: background 0.2s; }
+        .doc-item:hover { background: #f8f9fa; }
+        .doc-item.active { background: #3498db; color: white; }
+        .editor-area { flex: 1; display: flex; flex-direction: column; background: white; border-radius: 6px; overflow: hidden; }
+        .editor-header { padding: 15px; background: #34495e; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .editor-content { flex: 1; padding: 20px; }
+        textarea { width: 100%; height: 100%; border: none; resize: none; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; line-height: 1.6; outline: none; }
+        .version-info { display: flex; gap: 20px; padding: 10px 15px; background: #ecf0f1; border-top: 1px solid #bdc3c7; }
+        .version-info span { font-size: 13px; color: #7f8c8d; }
+        .version-info strong { color: #2c3e50; }
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 6px; color: white; font-size: 14px; animation: fadeInOut 3s forwards; z-index: 1000; }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
+        .toast.info { background: #3498db; }
+        .toast.warning { background: #f39c12; }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+        .locked { color: #e74c3c; font-weight: bold; }
+        .unlocked { color: #27ae60; font-weight: bold; }
+        .tree-folder { padding: 5px 15px; }
+        .tree-folder:hover { background: #34495e; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏：版本树 -->
+    <div class="sidebar">
+        <h2>📋 系统管理 v2.5</h2>
+        <div class="version-tree" id="version-tree">
+            <div style="padding: 20px; opacity: 0.6;">正在加载版本...</div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main">
+        <div class="header">
+            <h1>研发 Wiki 管理</h1>
+            <div class="toolbar">
+                <span id="doc-title" style="color: #7f8c8d;">请选择文档</span>
+                <button onclick="saveDoc()">💾 保存</button>
+                <label>
+                    <input type="checkbox" id="lock-checkbox"> 🔒 锁定
+                </label>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <!-- 文档列表 -->
+            <div class="doc-list" id="doc-list">
+                <h3>📄 文档列表</h3>
+                <div style="padding: 20px; opacity: 0.6;">请选择左侧版本</div>
+            </div>
+
+            <!-- 编辑器 -->
+            <div class="editor-area">
+                <div class="editor-header">
+                    <span id="current-doc-path">无</span>
+                </div>
+                <div class="editor-content">
+                    <textarea id="editor" placeholder="点击左侧文档开始编辑..."></textarea>
+                </div>
+                <div class="version-info">
+                    <span>版本: <strong id="doc-version">-</strong></span>
+                    <span>更新: <strong id="doc-mtime">-</strong></span>
+                    <span id="doc-lock">🔒 <strong>锁定状态:</strong> <span id="doc-lock-status">未锁定</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast-container"></div>
+
+    <!-- 外部 JavaScript -->
+    <script src="/static/sys_v2.js"></script>
+    <script>
+        // 全局变量
+        let currentVersion = null;
+        let currentDoc = null;
+        let currentVersionInfo = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVersionTree();
+        });
+
+        // 加载版本树
+        async function loadVersionTree() {
+            try {
+                const response = await fetch('/api/v2/versions');
+                const result = await response.json();
+                
+                if (result.code !== 200) {
+                    showToast(`加载版本列表失败: ${result.msg}`, 'error');
+                    return;
+                }
+
+                const treeContainer = document.getElementById('version-tree');
+                treeContainer.innerHTML = '';
+
+                // 遍历版本（已倒序）
+                for (const version of result.data) {
+                    const versionNode = createVersionNode(version);
+                    treeContainer.appendChild(versionNode);
+                }
+
+                if (result.data.length > 0) {
+                    // 自动展开第一个版本
+                    expandVersion(result.data[0].version);
+                }
+            } catch (error) {
+                showToast(`网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 创建版本节点
+        function createVersionNode(version) {
+            const versionDiv = document.createElement('div');
+            versionDiv.className = 'version-item';
+            versionDiv.innerHTML = `
+                <span>${version.version}</span>
+                <span class="count">${version.docs.length} 个文档</span>
+            `;
+            versionDiv.dataset.version = version.version;
+            versionDiv.onclick = () => {
+                // 清除激活状态
+                document.querySelectorAll('.version-item').forEach(el => el.classList.remove('active'));
+                versionDiv.classList.add('active');
+                // 加载文档列表
+                loadDocsForVersion(version.version);
+            };
+            return versionDiv;
+        }
+
+        // 展开版本（加载文档列表）
+        function expandVersion(versionName) {
+            // 实际由 loadDocsForVersion 完成
+        }
+
+        // 加载版本下的文档列表
+        async function loadDocsForVersion(versionName) {
+            currentVersion = versionName;
+            const docsContainer = document.getElementById('doc-list');
+            docsContainer.innerHTML = '<h3>📄 文档列表</h3>';
+
+            try {
+                const response = await fetch('/api/v2/versions');
+                const result = await response.json();
+
+                if (result.code !== 200) {
+                    docsContainer.innerHTML += '<div style="padding: 20px; color: #e74c3c;">加载失败</div>';
+                    return;
+                }
+
+                const versionData = result.data.find(v => v.version === versionName);
+                if (!versionData) {
+                    docsContainer.innerHTML += '<div style="padding: 20px;">版本不存在</div>';
+                    return;
+                }
+
+                // 渲染文档列表
+                versionData.docs.forEach(doc => {
+                    const docDiv = document.createElement('div');
+                    docDiv.className = 'doc-item';
+                    const docName = doc.name || doc.filename;
+                    const docPath = `版本管理/${versionName}/${docName}`;
+                    docDiv.textContent = docName;
+                    docDiv.dataset.filepath = docPath;
+                    docDiv.onclick = () => loadDoc(docPath);
+                    docsContainer.appendChild(docDiv);
+                });
+
+                // 无文档提示
+                if (versionData.docs.length === 0) {
+                    docsContainer.innerHTML += '<div style="padding: 20px; opacity: 0.6;">此版本暂无文档</div>';
+                }
+            } catch (error) {
+                docsContainer.innerHTML += `<div style="padding: 20px; color: #e74c3c;">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载文档内容
+        async function loadDoc(filepath) {
+            currentDoc = filepath;
+            document.querySelectorAll('.doc-item').forEach(el => {
+                if (el.dataset.filepath === filepath) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+
+            try {
+                const encodedPath = encodeURIComponent(filepath);
+                const response = await fetch(`/api/v2/wiki/read/${encodedPath}`);
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    document.getElementById('editor').value = result.content;
+                    document.getElementById('doc-title').textContent = filepath;
+                    
+                    // 显示版本信息
+                    currentVersionInfo = {
+                        version: result.version,
+                        mtime: result.mtime,
+                        locked: result.locked
+                    };
+                    updateVersionDisplay();
+                } else {
+                    showToast(`加载失败: ${result.msg}`, 'error');
+                }
+            } catch (error) {
+                showToast(`网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 更新版本显示
+        function updateVersionDisplay() {
+            if (!currentVersionInfo) return;
+
+            const versionEl = document.getElementById('doc-version');
+            const timeEl = document.getElementById('doc-mtime');
+            const lockEl = document.getElementById('doc-lock-status');
+
+            if (versionEl) versionEl.textContent = `v${currentVersionInfo.version}`;
+            if (timeEl) timeEl.textContent = currentVersionInfo.mtime;
+            if (lockEl) {
+                if (currentVersionInfo.locked) {
+                    lockEl.textContent = '已锁定 🔒';
+                    lockEl.className = 'locked';
+                } else {
+                    lockEl.textContent = '未锁定 🔓';
+                    lockEl.className = 'unlocked';
+                }
+            }
+        }
+
+        // 保存文档
+        async function saveDoc() {
+            if (!currentDoc) {
+                showToast('请先选择文档', 'warning');
+                return;
+            }
+
+            const content = document.getElementById('editor').value;
+            const lockCheckbox = document.getElementById('lock-checkbox');
+            
+            showToast('保存中...', 'info');
+
+            try {
+                const response = await fetch('/api/v2/wiki/save', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        filepath: currentDoc,
+                        content: content,
+                        locked: lockCheckbox ? lockCheckbox.checked : undefined
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showToast(`保存成功 (版本: v${result.version})`, 'success');
+                    // 更新本地版本信息
+                    if (currentVersionInfo) {
+                        currentVersionInfo.version = result.version;
+                        updateVersionDisplay();
+                    }
+                } else {
+                    showToast(`保存失败: ${result.msg}`, 'error');
+                }
+            } catch (error) {
+                showToast(`网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // Toast 提示
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+
+            // 3秒后自动消失
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
