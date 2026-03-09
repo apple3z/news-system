@@ -1,0 +1,44 @@
+{
+  "版本历史/v2.5/99-协同测试.md": {
+    "major": 1,
+    "minor": 0,
+    "patch": 1,
+    "history": [
+      {
+        "version": "1.0.1",
+        "time": "2026-03-09 18:18:30",
+        "action": "更新"
+      }
+    ],
+    "locked": false,
+    "last_update": "2026-03-09 18:18:30"
+  },
+  "文档中心/研发管理规范.md": {
+    "major": 1,
+    "minor": 0,
+    "patch": 1,
+    "history": [
+      {
+        "version": "1.0.1",
+        "time": "2026-03-09 18:37:49",
+        "action": "更新"
+      }
+    ],
+    "locked": false,
+    "last_update": "2026-03-09 18:37:49"
+  },
+  "版本历史/v2.5/99-测试.md": {
+    "major": 1,
+    "minor": 0,
+    "patch": 1,
+    "history": [
+      {
+        "version": "1.0.1",
+        "time": "2026-03-09 19:38:57",
+        "action": "更新"
+      }
+    ],
+    "locked": false,
+    "last_update": "2026-03-09 19:38:57"
+  }
+}

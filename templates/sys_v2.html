@@ -63,8 +63,9 @@
         <div class="header">
             <h1>研发 Wiki 管理</h1>
             <div class="toolbar">
-                <span id="doc-title" style="color: #7f8c8d;">请选择文档</span>
+                <span id="doc-title" style="color: #7f8c8d;">请选择文档</span> <span id="doc-version" style="color: #95a5a6; font-size: 0.9em; margin-left: 10px;"></span>
                 <button onclick="saveDoc()">💾 保存</button>
+                <button onclick="deleteDoc()" id="delete-btn" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; display: none; margin-left: 10px;">🗑️ 删除</button>
                 <label>
                     <input type="checkbox" id="lock-checkbox"> 🔒 锁定
                 </label>
@@ -89,6 +90,7 @@
                 <div class="version-info">
                     <span>版本: <strong id="doc-version">-</strong></span>
                     <span>更新: <strong id="doc-mtime">-</strong></span>
+                    <span>作者: <strong id="doc-author">-</strong></span>
                     <span id="doc-lock">🔒 <strong>锁定状态:</strong> <span id="doc-lock-status">未锁定</span></span>
                 </div>
             </div>
@@ -99,7 +101,7 @@
     <div id="toast-container"></div>
 
     <!-- 外部 JavaScript -->
-    <script src="/static/sys_v2.js"></script>
+    <script src="/static/sys_v2.js?v=202603092045"></script>
     <script>
         // 全局变量
         let currentVersion = null;
@@ -190,7 +192,7 @@
                     const docDiv = document.createElement('div');
                     docDiv.className = 'doc-item';
                     const docName = doc.name || doc.filename;
-                    const docPath = `版本管理/${versionName}/${docName}`;
+                    const docPath = `版本历史/${versionName}/${docName}`;
                     docDiv.textContent = docName;
                     docDiv.dataset.filepath = docPath;
                     docDiv.onclick = () => loadDoc(docPath);
@@ -230,9 +232,13 @@
                     currentVersionInfo = {
                         version: result.version,
                         mtime: result.mtime,
+                        author: result.author,
                         locked: result.locked
                     };
                     updateVersionDisplay();
+                    
+                    // 显示删除按钮
+                    document.getElementById('delete-btn').style.display = 'inline-block';
                 } else {
                     showToast(`加载失败: ${result.msg}`, 'error');
                 }
@@ -247,10 +253,12 @@
 
             const versionEl = document.getElementById('doc-version');
             const timeEl = document.getElementById('doc-mtime');
+            const authorEl = document.getElementById('doc-author');
             const lockEl = document.getElementById('doc-lock-status');
 
             if (versionEl) versionEl.textContent = `v${currentVersionInfo.version}`;
             if (timeEl) timeEl.textContent = currentVersionInfo.mtime;
+            if (authorEl) authorEl.textContent = currentVersionInfo.author || 'System';
             if (lockEl) {
                 if (currentVersionInfo.locked) {
                     lockEl.textContent = '已锁定 🔒';
@@ -259,6 +267,53 @@
                     lockEl.textContent = '未锁定 🔓';
                     lockEl.className = 'unlocked';
                 }
+            }
+        }
+
+        // 删除文档
+        async function deleteDoc() {
+            if (!currentDoc) {
+                showToast('请先选择文档', 'warning');
+                return;
+            }
+
+            // 确认对话框
+            if (!confirm(`确定要删除文档吗？\n\n${currentDoc}\n\n此操作不可恢复！`)) {
+                return;
+            }
+
+            showToast('删除中...', 'info');
+
+            try {
+                const response = await fetch('/api/v2/doc/delete', {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({path: currentDoc})
+                });
+
+                const result = await response.json();
+
+                if (result.code === 200) {
+                    showToast('删除成功', 'success');
+                    // 清空编辑器
+                    document.getElementById('editor').value = '';
+                    document.getElementById('doc-title').textContent = '请选择文档';
+                    document.getElementById('delete-btn').style.display = 'none';
+                    // 重置版本信息
+                    currentDoc = null;
+                    currentVersionInfo = null;
+                    document.getElementById('doc-version').textContent = '-';
+                    document.getElementById('doc-mtime').textContent = '-';
+                    document.getElementById('doc-author').textContent = '-';
+                    // 刷新文档列表
+                    if (currentVersion) {
+                        loadDocsForVersion(currentVersion);
+                    }
+                } else {
+                    showToast(`删除失败: ${result.msg}`, 'error');
+                }
+            } catch (error) {
+                showToast(`网络错误: ${error.message}`, 'error');
             }
         }
 

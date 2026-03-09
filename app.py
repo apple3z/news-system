@@ -28,7 +28,7 @@ VERSION_DOCS_DIR = "/home/zhang/news_system/doc/"
 VERSION_HISTORY_DIR = "/home/zhang/news_system/版本历史/"
 DOCS_CENTER_DIR = "/home/zhang/news_system/文档中心/"
 # ★ 版本文档管理目录（v2.4 新增）
-VERSION_MANAGE_DIR = "/home/zhang/news_system/版本管理/"
+VERSION_HISTORY_DIR = "/home/zhang/news_system/版本历史/"
 # 研发规范目录（v2.5 新增）
 RESEARCH_SPEC_DIR = "/home/zhang/news_system/研发规范/"
 # 版本文件记录
@@ -1413,9 +1413,9 @@ def get_version_files():
     version_files = {}
     
     # ★ 1. 优先扫描版本管理目录（v2.4 新增）
-    if os.path.exists(VERSION_MANAGE_DIR):
-        for version_dir in os.listdir(VERSION_MANAGE_DIR):
-            version_path = os.path.join(VERSION_MANAGE_DIR, version_dir)
+    if os.path.exists(VERSION_HISTORY_DIR):
+        for version_dir in os.listdir(VERSION_HISTORY_DIR):
+            version_path = os.path.join(VERSION_HISTORY_DIR, version_dir)
             if os.path.isdir(version_path):
                 files = []
                 for f in os.listdir(version_path):
@@ -1490,7 +1490,7 @@ def get_doc(filename):
     # 1. 如果有版本前缀，直接在对应版本目录查找
     if version_prefix:
         # ★ 优先查找版本管理目录（v2.4 新增）
-        test_path = os.path.join(VERSION_MANAGE_DIR, version_prefix, filename_only)
+        test_path = os.path.join(VERSION_HISTORY_DIR, version_prefix, filename_only)
         if os.path.exists(test_path):
             try:
                 with open(test_path, 'r', encoding='utf-8') as f:
@@ -3084,20 +3084,20 @@ def api_v2_versions():
     {
         "code": 200,
         "data": [
-            {"version": "v2.5.0", "path": "版本管理/v2.5.0", "docs": [...]},
-            {"version": "v2.4.0", "path": "版本管理/v2.4.0", "docs": [...]}
+            {"version": "v2.5.0", "path": "版本历史/v2.5", "docs": [...]},
+            {"version": "v2.4.0", "path": "版本历史/v2.4", "docs": [...]}
         ]
     }
     """
     try:
-        versions = get_sorted_versions(VERSION_MANAGE_DIR)
+        versions = get_sorted_versions(VERSION_HISTORY_DIR)
         
         data = []
         for v in versions:
-            docs = scan_version_docs(v, VERSION_MANAGE_DIR)
+            docs = scan_version_docs(v, VERSION_HISTORY_DIR)
             data.append({
                 'version': v,
-                'path': f'版本管理/{v}',
+                'path': f'版本历史/{v}',
                 'docs': docs
             })
         
@@ -3116,6 +3116,7 @@ def api_v2_wiki_read(filepath):
         "content": "# 文档内容...",
         "version": "1.0.5",
         "mtime": "2026-03-06 14:30:00",
+        "author": "张振中",
         "locked": false
     }
     """
@@ -3139,11 +3140,25 @@ def api_v2_wiki_read(filepath):
         # 获取版本信息
         version_info = get_doc_version(filepath, base_dir)
         
+        # 尝试从 .version.json 获取作者信息
+        author = 'System'
+        version_file = get_version_file_path(filepath)
+        if os.path.exists(version_file):
+            try:
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+                filename = os.path.basename(filepath)
+                if filename in version_data:
+                    author = version_data[filename].get('author', 'System')
+            except:
+                pass
+        
         return jsonify({
             'code': 200,
             'content': content,
             'version': version_info['version'],
             'mtime': version_info['mtime'],
+            'author': author,
             'locked': version_info['locked']
         })
     except Exception as e:
@@ -3156,7 +3171,7 @@ def api_v2_wiki_save():
     
     Body:
     {
-        "filepath": "版本管理/v2.5.0/02-需求.md",
+        "filepath": "版本历史/v2.5/02-需求.md",
         "content": "# 更新后的内容...",
         "locked": false
     }
@@ -3190,6 +3205,307 @@ def api_v2_wiki_save():
     result = save_doc_with_version(filepath, content, base_dir, locked)
     
     return jsonify(result)
+
+# ========== 统一文档 API (v2.5 新增) ==========
+
+# 基础目录
+BASE_DIR = "/home/zhang/news_system"
+
+
+def is_safe_path(path):
+    """验证路径安全，禁止路径遍历攻击"""
+    from urllib.parse import unquote
+    # 先 URL 解码，再验证
+    decoded_path = unquote(path)
+    allowed_prefixes = ['版本历史/', '文档中心/']
+    return any(decoded_path.startswith(prefix) for prefix in allowed_prefixes)
+
+
+def clear_cache(path):
+    """清除相关缓存"""
+    # 清除 Flask 缓存
+    # 清除文件系统缓存
+    pass
+
+
+def get_version_file_path(doc_path):
+    """获取版本文档对应的 .version.json 路径"""
+    doc_dir = os.path.dirname(os.path.join(BASE_DIR, doc_path))
+    return os.path.join(doc_dir, '.version.json')
+
+
+def increment_version(version):
+    """递增版本号（修订号 +1）"""
+    if not version:
+        return '1.0.0'
+
+    parts = version.split('.')
+    if len(parts) == 3:
+        parts[2] = str(int(parts[2]) + 1)
+    else:
+        parts = ['1', '0', '0']
+
+    return '.'.join(parts)
+
+
+def get_current_version(path):
+    """获取文档当前版本号"""
+    version_file = get_version_file_path(path)
+
+    if os.path.exists(version_file):
+        with open(version_file, 'r', encoding='utf-8') as f:
+            version_data = json.load(f)
+
+        filename = os.path.basename(path)
+        if filename in version_data:
+            return version_data[filename].get('version', '1.0.0')
+
+    return '1.0.0'
+
+
+def update_version_info(path, version, author):
+    """更新版本信息到 .version.json"""
+    version_file = get_version_file_path(path)
+
+    # 读取现有版本信息
+    if os.path.exists(version_file):
+        with open(version_file, 'r', encoding='utf-8') as f:
+            version_data = json.load(f)
+    else:
+        version_data = {}
+
+    # 获取文件名
+    filename = os.path.basename(path)
+
+    # 更新版本信息
+    from datetime import datetime
+    now_str = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    version_data[filename] = {
+        'version': version,
+        'mtime': now_str,
+        'author': author,
+        'history': version_data.get(filename, {}).get('history', []) + [{
+            'version': version,
+            'mtime': now_str,
+            'author': author
+        }]
+    }
+
+    # 写入文件
+    with open(version_file, 'w', encoding='utf-8') as f:
+        json.dump(version_data, f, ensure_ascii=False, indent=2)
+
+
+@app.route('/api/v2/doc/save', methods=['POST'])
+def api_v2_doc_save():
+    """保存文档（统一 API，自动版本管理）"""
+    data = request.json
+    path = data.get('path')
+    content = data.get('content')
+    author = data.get('author', 'System')
+
+    # 1. 验证路径安全
+    if not is_safe_path(path):
+        return jsonify({'code': 400, 'msg': '路径不安全'})
+
+    # 2. 获取当前版本
+    current_version = get_current_version(path)
+
+    # 3. 递增版本号
+    new_version = increment_version(current_version)
+
+    # 4. 写入磁盘文件
+    full_path = os.path.join(BASE_DIR, path)
+
+    # 确保目录存在
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+    with open(full_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+    # 5. 更新版本信息
+    update_version_info(path, new_version, author)
+
+    # 6. 清除缓存
+    clear_cache(path)
+
+    from datetime import datetime
+    return jsonify({
+        'code': 200,
+        'version': new_version,
+        'mtime': datetime.now().strftime('%Y-%m-%d %H:%M')
+    })
+
+
+@app.route('/api/v2/doc/read', methods=['GET'])
+def api_v2_doc_read():
+    """读取文档"""
+    path = request.args.get('path')
+
+    if not is_safe_path(path):
+        return jsonify({'code': 400, 'msg': '路径不安全'})
+
+    full_path = os.path.join(BASE_DIR, path)
+
+    if not os.path.exists(full_path):
+        return jsonify({'code': 404, 'msg': '文件不存在'})
+
+    with open(full_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # 获取版本信息
+    version_file = get_version_file_path(path)
+    version_info = {'version': '1.0.0', 'mtime': ''}
+
+    if os.path.exists(version_file):
+        with open(version_file, 'r', encoding='utf-8') as f:
+            version_data = json.load(f)
+        filename = os.path.basename(path)
+        if filename in version_data:
+            version_info = version_data[filename]
+
+    return jsonify({
+        'code': 200,
+        'content': content,
+        'version': version_info.get('version', '1.0.0'),
+        'mtime': version_info.get('mtime', ''),
+        'author': version_info.get('author', 'System')
+    })
+
+
+@app.route('/api/v2/doc/history', methods=['GET'])
+def api_v2_doc_history():
+    """获取版本历史"""
+    path = request.args.get('path')
+
+    if not is_safe_path(path):
+        return jsonify({'code': 400, 'msg': '路径不安全'})
+
+    version_file = get_version_file_path(path)
+
+    if not os.path.exists(version_file):
+        return jsonify({'code': 200, 'data': []})
+
+    with open(version_file, 'r', encoding='utf-8') as f:
+        version_data = json.load(f)
+
+    filename = os.path.basename(path)
+    if filename in version_data:
+        history = version_data[filename].get('history', [])
+        return jsonify({'code': 200, 'data': history})
+
+    return jsonify({'code': 200, 'data': []})
+
+
+@app.route('/api/v2/doc/delete', methods=['DELETE'])
+def api_v2_doc_delete():
+    """
+    删除文档（v2.5 Phase 6 新增）
+    
+    Body:
+    {
+        "path": "版本历史/v2.5/test.md"
+    }
+    
+    Response:
+    {
+        "code": 200,
+        "msg": "删除成功"
+    }
+    """
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'code': 400, 'msg': '请求体为空'}), 400
+    
+    path = data.get('path')
+    
+    if not path:
+        return jsonify({'code': 400, 'msg': '缺少path参数'}), 400
+    
+    # 1. 验证路径安全
+    if not is_safe_path(path):
+        return jsonify({'code': 400, 'msg': '路径不安全'}), 400
+    
+    # 2. 构建完整路径
+    full_path = os.path.join(BASE_DIR, path)
+    
+    # 3. 检查文件存在
+    if not os.path.exists(full_path):
+        return jsonify({'code': 404, 'msg': '文件不存在'}), 404
+    
+    # 4. 只允许删除 .md 文件
+    if not path.endswith('.md'):
+        return jsonify({'code': 400, 'msg': '只允许删除 .md 文件'}), 400
+    
+    try:
+        # 5. 删除文件
+        os.remove(full_path)
+        
+        # 6. 更新版本信息文件（删除对应记录）
+        version_file = get_version_file_path(path)
+        if os.path.exists(version_file):
+            try:
+                with open(version_file, 'r', encoding='utf-8') as f:
+                    version_data = json.load(f)
+                
+                filename = os.path.basename(path)
+                if filename in version_data:
+                    del version_data[filename]
+                    
+                    with open(version_file, 'w', encoding='utf-8') as f:
+                        json.dump(version_data, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                # 版本文件更新失败不影响删除结果
+                print(f"更新版本文件失败: {e}")
+        
+        return jsonify({'code': 200, 'msg': '删除成功'})
+        
+    except Exception as e:
+        return jsonify({'code': 500, 'msg': f'删除失败: {str(e)}'}), 500
+
+
+@app.route('/api/v2/doc/list', methods=['GET'])
+def api_v2_doc_list():
+    """列出目录"""
+    path = request.args.get('path', '')
+
+    if path and not is_safe_path(path):
+        return jsonify({'code': 400, 'msg': '路径不安全'})
+
+    # 如果未指定路径，列出允许的所有目录
+    if not path:
+        result = []
+        for prefix in ['版本历史', '文档中心']:
+            full_path = os.path.join(BASE_DIR, prefix)
+            if os.path.exists(full_path):
+                items = []
+                for item in os.listdir(full_path):
+                    item_path = os.path.join(full_path, item)
+                    if os.path.isdir(item_path):
+                        items.append({'name': item, 'type': 'dir', 'path': f"{prefix}/{item}"})
+                    elif item.endswith('.md'):
+                        items.append({'name': item, 'type': 'file', 'path': f"{prefix}/{item}"})
+                result.append({'name': prefix, 'items': items})
+        return jsonify({'code': 200, 'data': result})
+
+    # 列出指定目录内容
+    full_path = os.path.join(BASE_DIR, path)
+
+    if not os.path.exists(full_path):
+        return jsonify({'code': 404, 'msg': '目录不存在'})
+
+    items = []
+    for item in os.listdir(full_path):
+        item_path = os.path.join(full_path, item)
+        if os.path.isdir(item_path):
+            items.append({'name': item, 'type': 'dir', 'path': f"{path}/{item}"})
+        elif item.endswith('.md'):
+            items.append({'name': item, 'type': 'file', 'path': f"{path}/{item}"})
+
+    return jsonify({'code': 200, 'data': items})
+
 
 # ========== 启动服务 ==========
 

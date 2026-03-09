@@ -32,14 +32,8 @@ function loadVersionFile(versionId, filename, el) {
     document.querySelectorAll('.tree-node').forEach(node => node.classList.remove('active'));
     if (el) el.classList.add('active');
 
-    // 判断路径前缀：版本管理/ 或 版本历史/
-    let prefix;
-    if (versionId.match(/^v\d+\.\d+\.\d+$/)) {
-        prefix = '版本管理';
-    } else {
-        prefix = '版本历史';
-    }
-    const filepath = `${prefix}/${versionId}/${filename}`;
+    // 统一使用版本历史目录
+    const filepath = `版本历史/${versionId}/${filename}`;
     loadDoc(filepath);
 }
 
@@ -59,7 +53,7 @@ async function loadDoc(filepath, el) {
 
     // 如果路径不以允许的目录开头，自动补 文档中心/ 前缀
     let apiPath = filepath;
-    const allowedPrefixes = ['版本管理/', '版本历史/', '文档中心/', 'docs/', '研发规范/'];
+    const allowedPrefixes = ['版本历史/', '文档中心/', 'docs/', '研发规范/'];
     if (!allowedPrefixes.some(p => filepath.startsWith(p))) {
         apiPath = '文档中心/' + filepath;
     }
@@ -88,12 +82,37 @@ async function loadDoc(filepath, el) {
             const docName = document.querySelector('.editor-doc-name');
             if (docName) docName.textContent = filepath;
 
+            // 显示版本号
+            const versionDisplay = document.getElementById('doc-version');
+            if (versionDisplay && result.version) {
+                versionDisplay.textContent = '版本：' + result.version;
+            }
+
+            // 显示修改时间
+            const mtimeDisplay = document.getElementById('doc-mtime');
+            if (mtimeDisplay && result.mtime) {
+                mtimeDisplay.textContent = '修改：' + result.mtime;
+            }
+
+            // 显示作者（v2.5 Phase 6 新增）
+            const authorDisplay = document.getElementById('doc-author');
+            if (authorDisplay && result.author) {
+                authorDisplay.textContent = '作者：' + result.author;
+            }
+
             // 缓存版本信息
             currentVersionInfo = {
                 version: result.version,
                 mtime: result.mtime,
+                author: result.author,
                 locked: result.locked
             };
+
+            // 显示删除按钮（v2.5 Phase 6 新增）
+            const deleteBtn = document.getElementById('delete-btn');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'inline-block';
+            }
         } else {
             showToast('加载失败: ' + result.msg, 'error');
         }
@@ -119,7 +138,7 @@ async function saveDoc() {
 
     // 保存时也需要补路径前缀
     let savePath = currentDoc;
-    const allowedPrefixes = ['版本管理/', '版本历史/', '文档中心/', 'docs/', '研发规范/'];
+    const allowedPrefixes = ['版本历史/', '文档中心/', 'docs/', '研发规范/'];
     if (!allowedPrefixes.some(p => currentDoc.startsWith(p))) {
         savePath = '文档中心/' + currentDoc;
     }
@@ -127,13 +146,13 @@ async function saveDoc() {
     showToast('保存中...', 'info');
 
     try {
-        const response = await fetch('/api/v2/wiki/save', {
+        const response = await fetch('/api/v2/doc/save', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                filepath: savePath,
+                path: savePath,
                 content: content,
-                locked: isSysLocked
+                author: '张振中'
             })
         });
 
@@ -150,6 +169,58 @@ async function saveDoc() {
     } catch (error) {
         showToast('网络错误: ' + error.message, 'error');
         console.error('[sys] 保存失败:', error);
+    }
+}
+
+/**
+ * 删除文档（v2.5 Phase 6 新增）
+ */
+async function deleteDoc() {
+    if (!currentDoc) {
+        showToast('请先选择文档', 'warning');
+        return;
+    }
+
+    // 确认对话框
+    if (!confirm('确定要删除此文档吗？\n\n' + currentDoc + '\n\n此操作不可恢复！')) {
+        return;
+    }
+
+    showToast('删除中...', 'info');
+
+    // 删除时也需要补路径前缀
+    let deletePath = currentDoc;
+    const allowedPrefixes = ['版本历史/', '文档中心/', 'docs/', '研发规范/'];
+    if (!allowedPrefixes.some(p => currentDoc.startsWith(p))) {
+        deletePath = '文档中心/' + currentDoc;
+    }
+
+    try {
+        const response = await fetch('/api/v2/doc/delete', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({path: deletePath})
+        });
+
+        const result = await response.json();
+
+        if (result.code === 200) {
+            showToast('删除成功', 'success');
+            // 回到版本面板
+            cancelEdit();
+            // 清空编辑器
+            const editor = document.getElementById('docEditor');
+            if (editor) editor.value = '';
+            // 刷新版本树（如果有的话）
+            if (typeof loadVersionTree === 'function') {
+                loadVersionTree();
+            }
+        } else {
+            showToast('删除失败: ' + result.msg, 'error');
+        }
+    } catch (error) {
+        showToast('网络错误: ' + error.message, 'error');
+        console.error('[sys] 删除失败:', error);
     }
 }
 
