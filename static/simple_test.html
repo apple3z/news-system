@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最简单的标签切换测试</title>
+    <style>
+        .tab { padding: 10px 20px; border: 1px solid #ccc; cursor: pointer; }
+        .tab.active { background: #007acc; color: white; }
+        .tab-content { display: none; padding: 20px; border: 1px solid #ccc; margin-top: 10px; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <h1>标签切换测试</h1>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('news')">新闻管理</button>
+        <button class="tab" onclick="switchTab('versions')">版本历史</button>
+        <button class="tab" onclick="switchTab('docs')">文档中心</button>
+    </div>
+    
+    <div class="tab-content active" id="tab-news">
+        <h2>新闻管理内容</h2>
+        <p>这是新闻管理标签的内容</p>
+    </div>
+    <div class="tab-content" id="tab-versions">
+        <h2>版本历史内容</h2>
+        <p>这是版本历史标签的内容</p>
+    </div>
+    <div class="tab-content" id="tab-docs">
+        <h2>文档中心内容</h2>
+        <p>这是文档中心标签的内容</p>
+    </div>
+    
+    <script>
+        function switchTab(tab) {
+            alert('切换到: ' + tab);
+            
+            // 移除所有active
+            var tabs = document.getElementsByClassName('tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            // 添加active到当前按钮
+            var currentTab = event.target;
+            currentTab.classList.add('active');
+            
+            // 隐藏所有内容
+            var contents = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].classList.remove('active');
+            }
+            
+            // 显示当前内容
+            var content = document.getElementById('tab-' + tab);
+            content.classList.add('active');
+        }
+    </script>
+</body>
+</html>

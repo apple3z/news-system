@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统管理测试</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: #e0e0e0; padding: 20px; }
+        h1 { color: #00d2ff; margin-bottom: 20px; }
+        .test-section { background: #2d2d2d; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .test-section h2 { color: #00d2ff; margin-bottom: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .btn-primary { background: #007acc; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .result { background: #1a1a1a; padding: 10px; border-radius: 5px; margin-top: 10px; white-space: pre-wrap; }
+        
+        /* 标签样式 */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        .tab { padding: 10px 20px; border: none; background: #333; color: #e0e0e0; cursor: pointer; border-radius: 5px 5px 0 0; transition: all 0.3s; }
+        .tab:hover { background: #444; color: white; }
+        .tab.active { background: #007acc; color: white; }
+        
+        .tab-content { display: none; padding: 20px; background: #2d2d2d; border-radius: 0 0 10px 10px; }
+        .tab-content.active { display: block; }
+        
+        .status { padding: 10px; border-radius: 5px; margin: 5px 0; }
+        .status.success { background: #28a745; }
+        .status.error { background: #dc3545; }
+        .status.info { background: #007acc; }
+    </style>
+</head>
+<body>
+    <h1>🧪 系统管理功能测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 标签切换测试</h2>
+        <div class="tabs" id="testTabs">
+            <button class="tab active" data-tab="news">📰 新闻管理</button>
+            <button class="tab" data-tab="versions">📋 版本历史</button>
+            <button class="tab" data-tab="docs">📚 文档中心</button>
+        </div>
+        
+        <div class="tab-content active" id="tab-news">
+            <h3>新闻管理内容</h3>
+            <p>这是新闻管理标签的内容</p>
+        </div>
+        <div class="tab-content" id="tab-versions">
+            <h3>版本历史内容</h3>
+            <p>这是版本历史标签的内容</p>
+        </div>
+        <div class="tab-content" id="tab-docs">
+            <h3>文档中心内容</h3>
+            <p>这是文档中心标签的内容</p>
+        </div>
+        
+        <div id="tabStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. API 测试</h2>
+        <button class="btn btn-primary" onclick="testApi('/api/admin/crawl-logs', '爬虫日志')">测试爬虫日志</button>
+        <button class="btn btn-primary" onclick="testApi('/api/v2/doc/list?path=版本历史', '版本历史')">测试版本历史</button>
+        <button class="btn btn-primary" onclick="testApi('/api/v2/doc/list?path=文档中心', '文档中心')">测试文档中心</button>
+        <div id="apiStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 测试结果</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        // 标签切换测试
+        function initTabTest() {
+            const tabs = document.querySelector('#testTabs');
+            const statusDiv = document.getElementById('tabStatus');
+            
+            tabs.addEventListener('click', function(e) {
+                const target = e.target.closest('.tab');
+                if (!target) return;
+                
+                const tab = target.dataset.tab;
+                if (!tab) return;
+                
+                // 更新标签状态
+                document.querySelectorAll('#testTabs .tab').forEach(t => t.classList.remove('active'));
+                target.classList.add('active');
+                
+                // 更新内容显示
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('tab-' + tab).classList.add('active');
+                
+                // 显示状态
+                statusDiv.innerHTML = '<div class="status info">已切换到: ' + tab + '</div>';
+                console.log('切换到:', tab);
+            });
+            
+            statusDiv.innerHTML = '<div class="status success">✅ 标签点击事件已绑定！点击上方标签测试</div>';
+        }
+        
+        // API 测试
+        async function testApi(url, name) {
+            const statusDiv = document.getElementById('apiStatus');
+            const resultsDiv = document.getElementById('testResults');
+            
+            statusDiv.innerHTML = '<div class="status info">正在测试: ' + name + '</div>';
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.code === 200) {
+                    statusDiv.innerHTML = '<div class="status success">✅ ' + name + ' API 测试通过！</div>';
+                    resultsDiv.innerHTML = '<div class="result">' + JSON.stringify(data, null, 2) + '</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">❌ ' + name + ' API 返回错误: ' + data.message + '</div>';
+                }
+            } catch (e) {
+                statusDiv.innerHTML = '<div class="status error">❌ ' + name + ' API 测试失败: ' + e + '</div>';
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initTabTest();
+            console.log('测试页面已加载');
+        });
+    </script>
+</body>
+</html>

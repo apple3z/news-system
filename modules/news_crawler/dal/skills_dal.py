@@ -1,0 +1,145 @@
+"""
+Skills data access layer.
+All skills.db SQL operations extracted from routes/skills.py and routes/admin.py.
+"""
+
+import sqlite3
+from datetime import datetime
+from config import SKILLS_DB
+
+
+def _get_conn():
+    return sqlite3.connect(SKILLS_DB)
+
+
+def _get_row_conn():
+    conn = sqlite3.connect(SKILLS_DB)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def list_skills(keyword='', category=''):
+    """List skills with optional keyword/category filter (admin view)."""
+    conn = _get_row_conn()
+    c = conn.cursor()
+
+    sql = ("SELECT id, name, owner, title, description, category, url, github_url, "
+           "skill_level, features, chinese_intro, created_at FROM skills WHERE 1=1")
+    params = []
+
+    if keyword:
+        sql += " AND (name LIKE ? OR description LIKE ? OR chinese_intro LIKE ?)"
+        kw = '%' + keyword + '%'
+        params.extend([kw, kw, kw])
+    if category:
+        sql += " AND category = ?"
+        params.append(category)
+
+    sql += " ORDER BY id DESC"
+    c.execute(sql, params)
+    rows = [dict(r) for r in c.fetchall()]
+    conn.close()
+
+    return rows
+
+
+def get_skill(skill_id):
+    """Get a single skill by ID."""
+    conn = _get_row_conn()
+    c = conn.cursor()
+    c.execute("SELECT * FROM skills WHERE id = ?", (skill_id,))
+    row = c.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def create_skill(data):
+    """Create a new skill. Returns new ID."""
+    conn = _get_row_conn()
+    c = conn.cursor()
+    c.execute(
+        """INSERT INTO skills (name, owner, title, description, category, url, github_url,
+           skill_level, features, chinese_intro, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+        (data.get('name', ''), data.get('owner', ''), data.get('title', data.get('name', '')),
+         data.get('description', ''), data.get('category', ''), data.get('url', ''),
+         data.get('github_url', ''), data.get('skill_level', ''), data.get('features', ''),
+         data.get('chinese_intro', ''), datetime.now().strftime('%Y-%m-%d'))
+    )
+    conn.commit()
+    new_id = c.lastrowid
+    conn.close()
+    return new_id
+
+
+def update_skill(skill_id, data):
+    """Update an existing skill. Returns True if found, False otherwise."""
+    conn = _get_row_conn()
+    c = conn.cursor()
+    c.execute("SELECT id FROM skills WHERE id = ?", (skill_id,))
+    if not c.fetchone():
+        conn.close()
+        return False
+
+    c.execute(
+        """UPDATE skills SET name=?, owner=?, title=?, description=?, category=?,
+           url=?, github_url=?, skill_level=?, features=?, chinese_intro=?
+           WHERE id=?""",
+        (data.get('name', ''), data.get('owner', ''), data.get('title', ''),
+         data.get('description', ''), data.get('category', ''),
+         data.get('url', ''), data.get('github_url', ''),
+         data.get('skill_level', ''), data.get('features', ''),
+         data.get('chinese_intro', ''), skill_id)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+def delete_skill(skill_id):
+    """Delete a skill by ID."""
+    conn = _get_conn()
+    c = conn.cursor()
+    c.execute("DELETE FROM skills WHERE id = ?", (skill_id,))
+    conn.commit()
+    conn.close()
+
+
+def get_categories():
+    """Get distinct skill categories."""
+    conn = _get_conn()
+    c = conn.cursor()
+    c.execute("SELECT DISTINCT category FROM skills WHERE category IS NOT NULL AND category != '' ORDER BY category")
+    cats = [row[0] for row in c.fetchall()]
+    conn.close()
+    return cats
+
+
+def search_skills_public(keyword=''):
+    """Search skills for public API (simpler result set)."""
+    conn = _get_conn()
+    c = conn.cursor()
+
+    if keyword:
+        c.execute(
+            "SELECT id, name, description, category FROM skills "
+            "WHERE name LIKE ? OR description LIKE ? ORDER BY name",
+            (f"%{keyword}%", f"%{keyword}%")
+        )
+    else:
+        c.execute("SELECT id, name, description, category FROM skills ORDER BY category, name")
+
+    skills = c.fetchall()
+    conn.close()
+
+    return [{'id': s[0], 'name': s[1], 'description': s[2], 'category': s[3]} for s in skills]
+
+
+def get_all_skills_simple():
+    """Get all skills in simple format for listing page."""
+    conn = _get_conn()
+    c = conn.cursor()
+    c.execute("SELECT id, name, description, category FROM skills ORDER BY category, name")
+    skills = c.fetchall()
+    conn.close()
+    return skills

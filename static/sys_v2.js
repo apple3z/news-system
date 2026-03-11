@@ -59,8 +59,8 @@ async function loadDoc(filepath, el) {
     }
 
     try {
-        const encodedPath = encodeURIComponent(apiPath);
-        const response = await fetch(`/api/v2/wiki/read/${encodedPath}`);
+        // ★使用正确的 API：/api/v2/doc/read 会读取 .version.json 中的正确版本
+        const response = await fetch(`/api/v2/doc/read?path=${encodeURIComponent(apiPath)}`);
         const result = await response.json();
 
         if (result.code === 200) {
@@ -82,16 +82,27 @@ async function loadDoc(filepath, el) {
             const docName = document.querySelector('.editor-doc-name');
             if (docName) docName.textContent = filepath;
 
-            // 显示版本号
+            // 显示版本号 - 底部区域
             const versionDisplay = document.getElementById('doc-version');
             if (versionDisplay && result.version) {
-                versionDisplay.textContent = '版本：' + result.version;
+                versionDisplay.textContent = '📋 版本：' + result.version;
             }
 
-            // 显示修改时间
+            // 显示修改时间 - 底部区域
             const mtimeDisplay = document.getElementById('doc-mtime');
             if (mtimeDisplay && result.mtime) {
-                mtimeDisplay.textContent = '修改：' + result.mtime;
+                mtimeDisplay.textContent = '🕐 修改：' + result.mtime;
+            }
+
+            // ★ 新增：更新中间编辑器头部版本信息
+            const midVersion = document.getElementById('mid-version');
+            if (midVersion && result.version) {
+                midVersion.textContent = result.version;
+            }
+            
+            const midMtime = document.getElementById('mid-mtime');
+            if (midMtime && result.mtime) {
+                midMtime.textContent = result.mtime;
             }
 
             // 显示作者（v2.5 Phase 6 新增）
@@ -162,7 +173,21 @@ async function saveDoc() {
             showToast('保存成功 (版本: v' + result.version + ')', 'success');
             if (currentVersionInfo) {
                 currentVersionInfo.version = result.version;
+                currentVersionInfo.mtime = result.mtime;
             }
+
+            // ★ 更新版本显示区域
+            const midVersion = document.getElementById('mid-version');
+            if (midVersion) midVersion.textContent = result.version;
+
+            const midMtime = document.getElementById('mid-mtime');
+            if (midMtime && result.mtime) midMtime.textContent = result.mtime;
+
+            const docVersion = document.getElementById('doc-version');
+            if (docVersion) docVersion.textContent = '📋 版本：' + result.version;
+
+            const docMtime = document.getElementById('doc-mtime');
+            if (docMtime && result.mtime) docMtime.textContent = '🕐 修改：' + result.mtime;
         } else {
             showToast('保存失败: ' + result.msg, 'error');
         }

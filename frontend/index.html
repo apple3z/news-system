@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News System</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <div id="app">
+        <app-header></app-header>
+        <router-view></router-view>
+    </div>
+
+    <!-- Vue 3 + Router from CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
+
+    <!-- App modules -->
+    <script src="/js/api.js"></script>
+    <script src="/js/components/AppHeader.js"></script>
+    <script src="/js/components/Modal.js"></script>
+    <script src="/js/components/Pagination.js"></script>
+    <script src="/js/components/FileTree.js"></script>
+    <script src="/js/components/DocEditor.js"></script>
+    <script src="/js/views/NewsView.js"></script>
+    <script src="/js/views/SkillsView.js"></script>
+    <script src="/js/views/SkillDetailView.js"></script>
+    <script src="/js/views/SubscribeView.js"></script>
+    <script src="/js/views/admin/NewsAdmin.js"></script>
+    <script src="/js/views/admin/SkillsAdmin.js"></script>
+    <script src="/js/views/admin/SubscribeAdmin.js"></script>
+    <script src="/js/views/admin/VersionsAdmin.js"></script>
+    <script src="/js/views/admin/DocsAdmin.js"></script>
+    <script src="/js/views/admin/AdminLayout.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
