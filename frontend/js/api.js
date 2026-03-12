@@ -7,6 +7,10 @@ const API = {
             const res = await fetch(url, options);
             if (!res.ok) {
                 console.error(`API error: ${res.status} ${res.statusText} - ${url}`);
+                // 会话过期时自动跳转登录页（排除登录相关API）
+                if (res.status === 401 && !url.includes('/api/auth/')) {
+                    window.location.href = '/sys/login';
+                }
                 return { code: res.status, message: res.statusText };
             }
             return res.json();

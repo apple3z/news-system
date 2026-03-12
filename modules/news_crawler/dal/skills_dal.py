@@ -143,3 +143,34 @@ def get_all_skills_simple():
     skills = c.fetchall()
     conn.close()
     return skills
+
+
+def get_daily_stats(days=30):
+    """Get daily skill count statistics for the last N days."""
+    conn = _get_conn()
+    c = conn.cursor()
+    c.execute("""
+        SELECT created_at AS day, COUNT(*) AS count
+        FROM skills
+        WHERE created_at >= date('now', '-' || ? || ' days')
+        GROUP BY created_at
+        ORDER BY created_at ASC
+    """, (days,))
+    rows = c.fetchall()
+    conn.close()
+    return [{'day': r[0], 'count': r[1]} for r in rows]
+
+
+def get_skill_rankings(limit=20):
+    """Get top skills ranked by stars."""
+    conn = _get_conn()
+    c = conn.cursor()
+    c.execute(
+        "SELECT id, name, description, category, stars, downloads "
+        "FROM skills WHERE stars IS NOT NULL ORDER BY stars DESC LIMIT ?",
+        (limit,)
+    )
+    rows = c.fetchall()
+    conn.close()
+    return [{'id': r[0], 'name': r[1], 'description': r[2],
+             'category': r[3], 'stars': r[4] or 0, 'downloads': r[5] or 0} for r in rows]

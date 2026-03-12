@@ -58,6 +58,7 @@ def serve_js(filename):
 
 # ========== SPA catch-all ==========
 @app.route('/')
+@app.route('/news/<path:path>')
 @app.route('/skills')
 @app.route('/skill/<path:path>')
 @app.route('/subscribe')

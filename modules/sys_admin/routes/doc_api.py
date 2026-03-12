@@ -6,9 +6,11 @@ Endpoints: /api/v2/doc/list, /api/v2/doc/read, /api/v2/doc/save, /api/v2/doc/del
 from flask import jsonify, request
 from modules.sys_admin.routes import sys_admin_bp
 from modules.sys_admin.services import doc_service
+from utils.auth import login_required
 
 
 @sys_admin_bp.route('/api/v2/doc/list')
+@login_required
 def api_v2_doc_list():
     """List documents in a directory."""
     path = request.args.get('path', '')
@@ -17,6 +19,7 @@ def api_v2_doc_list():
 
 
 @sys_admin_bp.route('/api/v2/doc/read')
+@login_required
 def api_v2_doc_read():
     """Read document content."""
     path = request.args.get('path', '')
@@ -25,6 +28,7 @@ def api_v2_doc_read():
 
 
 @sys_admin_bp.route('/api/v2/doc/save', methods=['POST'])
+@login_required
 def api_v2_doc_save():
     """Save document with version management."""
     data = request.get_json()
@@ -40,6 +44,7 @@ def api_v2_doc_save():
 
 
 @sys_admin_bp.route('/api/v2/doc/delete', methods=['POST'])
+@login_required
 def api_v2_doc_delete():
     """Delete a document."""
     data = request.get_json()
@@ -53,6 +58,7 @@ def api_v2_doc_delete():
 
 
 @sys_admin_bp.route('/api/v2/doc/create', methods=['POST'])
+@login_required
 def api_v2_doc_create():
     """Create a new document."""
     data = request.get_json()

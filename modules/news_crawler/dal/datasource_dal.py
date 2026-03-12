@@ -102,6 +102,10 @@ def create_source(data):
         )
         conn.commit()
         return {'code': 200, 'message': '创建成功'}
+    except sqlite3.IntegrityError:
+        return {'code': 409, 'message': '数据源已存在'}
+    except sqlite3.Error as e:
+        return {'code': 500, 'message': f'数据库错误: {str(e)}'}
     finally:
         conn.close()
 
@@ -129,6 +133,8 @@ def update_source(source_id, data):
         )
         conn.commit()
         return {'code': 200, 'message': '更新成功'}
+    except sqlite3.Error as e:
+        return {'code': 500, 'message': f'数据库错误: {str(e)}'}
     finally:
         conn.close()
 
@@ -140,6 +146,8 @@ def delete_source(source_id):
         conn.execute('DELETE FROM data_sources WHERE id = ?', (source_id,))
         conn.commit()
         return {'code': 200, 'message': '删除成功'}
+    except sqlite3.Error as e:
+        return {'code': 500, 'message': f'数据库错误: {str(e)}'}
     finally:
         conn.close()
 
@@ -270,6 +278,42 @@ def seed_default_sources():
             ('CSDN', 'news', 'https://www.csdn.net/', 8, {'keywords': 'AI,智能,大模型,Python,技术'}),
         ]
         for name, stype, url, priority, config in news_sources:
+            conn.execute(
+                'INSERT INTO data_sources (name, type, url, config, priority, created_at, updated_at) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (name, stype, url, json.dumps(config, ensure_ascii=False), priority, now, now)
+            )
+        # 国内RSS源（6个，v2.6.2新增）
+        domestic_rss = [
+            ('少数派', 'rss', 'https://sspai.com/feed', 12, {'rss': True, 'keywords': 'AI,效率,数字生活,工具'}),
+            ('爱范儿', 'rss', 'https://www.ifanr.com/feed', 12, {'rss': True, 'keywords': 'AI,科技,消费电子,创新'}),
+            ('IT之家', 'rss', 'https://www.ithome.com/rss/', 14, {'rss': True, 'keywords': 'AI,芯片,微软,苹果,科技'}),
+            ('极客公园', 'rss', 'https://www.geekpark.net/rss', 10, {'rss': True, 'keywords': 'AI,创业,科技趋势'}),
+            ('钛媒体', 'rss', 'https://www.tmtpost.com/feed', 12, {'rss': True, 'keywords': 'AI,商业,科技,创投'}),
+            ('品玩', 'rss', 'https://www.pingwest.com/feed', 10, {'rss': True, 'keywords': 'AI,科技,硅谷'}),
+        ]
+        for name, stype, url, priority, config in domestic_rss:
+            conn.execute(
+                'INSERT INTO data_sources (name, type, url, config, priority, created_at, updated_at) '
+                'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (name, stype, url, json.dumps(config, ensure_ascii=False), priority, now, now)
+            )
+        # 国外RSS源（12个，v2.6.2新增）
+        intl_rss = [
+            ('TechCrunch', 'rss', 'https://techcrunch.com/feed/', 15, {'rss': True, 'lang': 'en'}),
+            ('The Verge', 'rss', 'https://www.theverge.com/rss/index.xml', 14, {'rss': True, 'lang': 'en'}),
+            ('Ars Technica', 'rss', 'https://feeds.arstechnica.com/arstechnica/index', 12, {'rss': True, 'lang': 'en'}),
+            ('Wired', 'rss', 'https://www.wired.com/feed/rss', 12, {'rss': True, 'lang': 'en'}),
+            ('MIT Tech Review', 'rss', 'https://www.technologyreview.com/stories.rss', 15, {'rss': True, 'lang': 'en'}),
+            ('Hacker News', 'rss', 'https://hnrss.org/frontpage', 14, {'rss': True, 'lang': 'en'}),
+            ('Engadget', 'rss', 'https://www.engadget.com/rss.xml', 10, {'rss': True, 'lang': 'en'}),
+            ('VentureBeat', 'rss', 'https://venturebeat.com/feed/', 13, {'rss': True, 'lang': 'en'}),
+            ('9to5Mac', 'rss', 'https://9to5mac.com/feed/', 10, {'rss': True, 'lang': 'en'}),
+            ('9to5Google', 'rss', 'https://9to5google.com/feed/', 10, {'rss': True, 'lang': 'en'}),
+            ('TechCrunch AI', 'rss', 'https://techcrunch.com/category/artificial-intelligence/feed/', 16, {'rss': True, 'lang': 'en'}),
+            ('The Verge AI', 'rss', 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', 16, {'rss': True, 'lang': 'en'}),
+        ]
+        for name, stype, url, priority, config in intl_rss:
             conn.execute(
                 'INSERT INTO data_sources (name, type, url, config, priority, created_at, updated_at) '
                 'VALUES (?, ?, ?, ?, ?, ?, ?)',

@@ -7,6 +7,7 @@ const { createRouter, createWebHistory } = VueRouter;
 // Define routes
 const routes = [
     { path: '/', component: NewsView },
+    { path: '/news/:id', component: NewsDetailView },
     { path: '/skills', component: SkillsView },
     { path: '/skill/:id', component: SkillDetailView },
     { path: '/subscribe', component: SubscribeView },

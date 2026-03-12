@@ -1,12 +1,13 @@
 """
 Subscribe API routes.
-Public: /api/subscribe (POST, DELETE), /api/subscribe/check
+Public: /api/subscribe (POST, DELETE), /api/subscribe/check, /api/subscribe/feed, /api/subscribe/sources
 Admin: /api/admin/subscriptions CRUD, toggle, history, check-all
 """
 
 from flask import jsonify, request
 from modules.news_crawler.routes import news_crawler_bp
 from modules.news_crawler.services import subscribe_service
+from utils.auth import login_required
 
 
 # ========== Public Subscribe API ==========
@@ -59,6 +60,7 @@ def api_subscribe_sources():
 # ========== Admin Subscriptions API ==========
 
 @news_crawler_bp.route('/api/admin/subscriptions')
+@login_required
 def api_admin_subscriptions_list():
     """Get subscription list (admin)."""
     status = request.args.get('status', 'all')
@@ -67,6 +69,7 @@ def api_admin_subscriptions_list():
 
 
 @news_crawler_bp.route('/api/admin/subscriptions/<int:sub_id>')
+@login_required
 def api_admin_subscriptions_get(sub_id):
     """Get single subscription detail."""
     sub = subscribe_service.get_subscription(sub_id)
@@ -76,6 +79,7 @@ def api_admin_subscriptions_get(sub_id):
 
 
 @news_crawler_bp.route('/api/admin/subscriptions', methods=['POST'])
+@login_required
 def api_admin_subscriptions_create():
     """Create a new subscription (admin)."""
     data = request.get_json()
@@ -89,6 +93,7 @@ def api_admin_subscriptions_create():
 
 
 @news_crawler_bp.route('/api/admin/subscriptions/<int:sub_id>', methods=['PUT'])
+@login_required
 def api_admin_subscriptions_update(sub_id):
     """Update an existing subscription."""
     data = request.get_json()
@@ -99,6 +104,7 @@ def api_admin_subscriptions_update(sub_id):
 
 
 @news_crawler_bp.route('/api/admin/subscriptions/<int:sub_id>', methods=['DELETE'])
+@login_required
 def api_admin_subscriptions_delete(sub_id):
     """Delete a subscription."""
     subscribe_service.delete_subscription(sub_id)
@@ -106,6 +112,7 @@ def api_admin_subscriptions_delete(sub_id):
 
 
 @news_crawler_bp.route('/api/admin/subscriptions/<int:sub_id>/toggle', methods=['PUT'])
+@login_required
 def api_admin_subscriptions_toggle(sub_id):
     """Toggle subscription active/inactive."""
     new_status = subscribe_service.toggle_active(sub_id)
@@ -115,6 +122,7 @@ def api_admin_subscriptions_toggle(sub_id):
 
 
 @news_crawler_bp.route('/api/admin/subscriptions/<int:sub_id>/history')
+@login_required
 def api_admin_subscriptions_history(sub_id):
     """Get subscription update history."""
     rows = subscribe_service.get_history(sub_id)
@@ -122,6 +130,7 @@ def api_admin_subscriptions_history(sub_id):
 
 
 @news_crawler_bp.route('/api/admin/subscriptions/check-all', methods=['POST'])
+@login_required
 def api_admin_subscriptions_check_all():
     """Trigger check for all subscriptions."""
     try:

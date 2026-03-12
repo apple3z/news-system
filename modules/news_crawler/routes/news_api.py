@@ -48,6 +48,15 @@ def api_news_search():
     return jsonify(resp)
 
 
+@news_crawler_bp.route('/api/news/<int:news_id>')
+def api_news_detail(news_id):
+    """Get single news item by ID (public)."""
+    item = news_service.get_news_by_id(news_id)
+    if not item:
+        return jsonify({'code': 404, 'message': '新闻不存在'}), 404
+    return jsonify({'code': 200, 'data': item})
+
+
 @news_crawler_bp.route('/api/news/categories')
 def api_news_categories():
     """Get news category list."""

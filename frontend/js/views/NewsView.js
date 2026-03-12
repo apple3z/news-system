@@ -66,7 +66,8 @@ const NewsView = {
         },
         async loadHotNews() {
             try {
-                const data = await API.get('/api/news/search?sort_by=hot_score&sort_order=desc&per_page=10');
+                const dateFrom = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+                const data = await API.get('/api/news/search?sort_by=hot_score&sort_order=desc&per_page=10&date_from=' + dateFrom);
                 if (data.code === 200) {
                     this.hotNews = data.data || [];
                     this.bannerSlides = this.hotNews.slice(0, 4);
@@ -101,6 +102,11 @@ const NewsView = {
         goToPage(p) {
             this.page = p;
             this.loadNews();
+        },
+        openNews(item) {
+            if (item && item.id) {
+                this.$router.push('/news/' + item.id);
+            }
         },
         openLink(link) {
             if (link) window.open(link, '_blank');
@@ -214,8 +220,8 @@ const NewsView = {
 
                     <!-- News Grid -->
                     <div v-else class="news-grid">
-                        <div v-for="item in newsList" :key="item.id" class="news-card" @click="openLink(item.link)">
-                            <div v-if="item.image" class="news-card-image" :style="{ backgroundImage: 'url(' + item.image + ')' }"></div>
+                        <div v-for="item in newsList" :key="item.id" class="news-card" @click="openNews(item)">
+                            <div v-if="item.image && item.image.startsWith('http')" class="news-card-image" :style="{ backgroundImage: 'url(' + item.image + ')' }"></div>
                             <div v-else class="news-card-image news-card-image-placeholder">
                                 <span>{{ item.category?.charAt(0) || '新' }}</span>
                             </div>
@@ -225,7 +231,7 @@ const NewsView = {
                                 <div class="meta">
                                     <span class="source">{{ item.source }}</span>
                                     <span class="category-tag">{{ item.category || '未分类' }}</span>
-                                    <span class="read-time">{{ getReadingTime(item.content) }}</span>
+                                    <span class="time-info" v-if="item.time">{{ item.time }}</span>
                                 </div>
                             </div>
                         </div>

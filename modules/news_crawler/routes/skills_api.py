@@ -7,6 +7,7 @@ Admin: /api/admin/skills CRUD, /api/admin/skills/categories, /api/admin/skills/c
 from flask import jsonify, request
 from modules.news_crawler.routes import news_crawler_bp
 from modules.news_crawler.services import skills_service, crawler_service
+from utils.auth import login_required
 
 
 # ========== Public Skills API ==========
@@ -26,9 +27,18 @@ def api_skills_categories_public():
     return jsonify({'code': 200, 'data': categories})
 
 
+@news_crawler_bp.route('/api/skills/rankings')
+def api_skills_rankings():
+    """Get skills ranking by stars (public)."""
+    limit = request.args.get('limit', 20, type=int)
+    data = skills_service.get_skill_rankings(limit=limit)
+    return jsonify({'code': 200, 'data': data})
+
+
 # ========== Admin Skills API ==========
 
 @news_crawler_bp.route('/api/admin/skills')
+@login_required
 def api_admin_skills_list():
     """Get skills list (admin)."""
     keyword = request.args.get('keyword', '').strip()
@@ -38,6 +48,7 @@ def api_admin_skills_list():
 
 
 @news_crawler_bp.route('/api/admin/skills/categories')
+@login_required
 def api_admin_skills_categories():
     """Get skill categories (admin)."""
     cats = skills_service.get_categories()
@@ -45,6 +56,7 @@ def api_admin_skills_categories():
 
 
 @news_crawler_bp.route('/api/admin/skills/<int:skill_id>')
+@login_required
 def api_admin_skills_get(skill_id):
     """Get single skill detail."""
     skill = skills_service.get_skill(skill_id)
@@ -54,6 +66,7 @@ def api_admin_skills_get(skill_id):
 
 
 @news_crawler_bp.route('/api/admin/skills', methods=['POST'])
+@login_required
 def api_admin_skills_create():
     """Create a new skill."""
     data = request.get_json()
@@ -66,6 +79,7 @@ def api_admin_skills_create():
 
 
 @news_crawler_bp.route('/api/admin/skills/<int:skill_id>', methods=['PUT'])
+@login_required
 def api_admin_skills_update(skill_id):
     """Update an existing skill."""
     data = request.get_json()
@@ -76,6 +90,7 @@ def api_admin_skills_update(skill_id):
 
 
 @news_crawler_bp.route('/api/admin/skills/<int:skill_id>', methods=['DELETE'])
+@login_required
 def api_admin_skills_delete(skill_id):
     """Delete a skill."""
     skills_service.delete_skill(skill_id)
@@ -83,6 +98,7 @@ def api_admin_skills_delete(skill_id):
 
 
 @news_crawler_bp.route('/api/admin/skills/crawl', methods=['POST'])
+@login_required
 def api_admin_skills_crawl():
     """Trigger skills crawler."""
     try:

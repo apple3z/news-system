@@ -70,8 +70,12 @@ def start_unified_crawl(crawl_type='full'):
                     if PROJECT_ROOT not in sys.path:
                         sys.path.insert(0, PROJECT_ROOT)
                     from fetch_news import fetch_news
-                    fetch_news()
+                    result = fetch_news() or {}
+                    total += result.get('total', 0)
+                    new_count += result.get('new', 0)
+                    updated += result.get('updated', 0)
                     detail['news'] = 'completed'
+                    detail['news_detail'] = result.get('detail', [])
                 except Exception as e:
                     detail['news'] = f'failed: {e}'
 

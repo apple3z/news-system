@@ -1,6 +1,6 @@
 /**
  * SubscribeView - 订阅资讯页面（公开）
- * v2.6.2: 展示RSS订阅的实际内容，而非管理订阅
+ * v2.6.2: 改为新闻卡片样式展示
  */
 const SubscribeView = {
     data() {
@@ -11,12 +11,16 @@ const SubscribeView = {
             page: 1,
             total: 0,
             perPage: 20,
-            loading: false
+            loading: false,
+            loaded: false
         };
     },
     computed: {
         totalPages() {
             return Math.ceil(this.total / this.perPage);
+        },
+        isEmpty() {
+            return this.loaded && this.feeds.length === 0;
         }
     },
     methods: {
@@ -36,21 +40,29 @@ const SubscribeView = {
                 }
             } finally {
                 this.loading = false;
+                this.loaded = true;
             }
         },
         onFilterChange() {
             this.page = 1;
             this.loadFeeds();
         },
-        prevPage() {
-            if (this.page > 1) { this.page--; this.loadFeeds(); }
+        goToPage(p) {
+            this.page = p;
+            this.loadFeeds();
         },
-        nextPage() {
-            if (this.page < this.totalPages) { this.page++; this.loadFeeds(); }
+        openLink(url) {
+            if (url) window.open(url, '_blank');
         },
-        formatContent(content) {
-            if (!content) return '';
-            return content.length > 200 ? content.substring(0, 200) + '...' : content;
+        parseTitle(content) {
+            if (!content) return '无标题';
+            const first = content.split('\n')[0].trim();
+            return first.length > 60 ? first.substring(0, 60) + '...' : first;
+        },
+        formatSummary(content) {
+            if (!content) return '暂无内容';
+            const text = content.replace(/^[^\n]*\n?/, '').trim();
+            return text.length > 150 ? text.substring(0, 150) + '...' : (text || content.substring(0, 150));
         },
         formatDate(dt) {
             if (!dt) return '';
@@ -63,53 +75,63 @@ const SubscribeView = {
     },
     template: `
     <div class="theme-dark">
-        <div class="container" style="max-width:1200px;">
-            <h2 style="color:#fff;margin-bottom:20px;">订阅资讯</h2>
+        <div class="container">
+            <h2 style="color:#fff;margin-bottom:8px;">订阅资讯</h2>
+            <p style="color:#999;margin-bottom:20px;font-size:14px;">来自RSS订阅源的最新内容</p>
 
             <!-- 筛选栏 -->
-            <div style="display:flex;gap:12px;margin-bottom:24px;align-items:center;">
-                <select v-model="sourceFilter" @change="onFilterChange"
-                        style="padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;font-size:14px;">
-                    <option value="">全部订阅源</option>
-                    <option v-for="s in sources" :key="s" :value="s">{{ s }}</option>
-                </select>
-                <span style="color:#aaa;font-size:13px;">共 {{ total }} 条内容</span>
-            </div>
-
-            <!-- 加载状态 -->
-            <div v-if="loading" style="text-align:center;padding:40px;color:#aaa;">加载中...</div>
-
-            <!-- 内容列表 -->
-            <div v-else class="rss-feed-list">
-                <div v-for="item in feeds" :key="item.id" class="rss-feed-card">
-                    <div class="rss-feed-header">
-                        <span class="rss-source-tag">{{ item.sub_name }}</span>
-                        <span class="rss-date">{{ formatDate(item.detected_at) }}</span>
+            <div class="filters-bar">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <select v-model="sourceFilter" @change="onFilterChange">
+                            <option value="">全部订阅源</option>
+                            <option v-for="s in sources" :key="s" :value="s">{{ s }}</option>
+                        </select>
                     </div>
-                    <p>{{ formatContent(item.content) }}</p>
-                    <a v-if="item.source_url" :href="item.source_url" target="_blank" class="rss-read-more">
-                        查看原文 →
-                    </a>
-                </div>
-
-                <div v-if="feeds.length === 0" style="text-align:center;padding:60px;color:#888;">
-                    <p>暂无订阅内容</p>
-                    <p style="font-size:13px;">请在后台添加RSS订阅源并执行采集</p>
+                    <div class="content-stats" style="margin:0;">
+                        <span>{{ total }} 条内容</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- 分页 -->
-            <div v-if="totalPages > 1" style="display:flex;justify-content:center;gap:16px;margin-top:24px;">
-                <button @click="prevPage" :disabled="page <= 1"
-                        style="padding:8px 16px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;cursor:pointer;">
-                    上一页
-                </button>
-                <span style="color:#aaa;line-height:36px;">{{ page }} / {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="page >= totalPages"
-                        style="padding:8px 16px;border-radius:4px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;cursor:pointer;">
-                    下一页
-                </button>
+            <!-- Loading -->
+            <div v-if="loading" class="news-grid">
+                <div v-for="i in 6" :key="i" class="news-card">
+                    <div class="loading-skeleton" style="height: 24px; width: 80%; margin-bottom: 12px;"></div>
+                    <div class="loading-skeleton" style="height: 16px; width: 100%; margin-bottom: 8px;"></div>
+                    <div class="loading-skeleton" style="height: 16px; width: 60%;"></div>
+                </div>
             </div>
+
+            <!-- Empty -->
+            <div v-else-if="isEmpty" class="empty-state">
+                <div class="empty-state-icon">📡</div>
+                <div class="empty-state-text">暂无订阅内容</div>
+                <div class="empty-state-hint">请在后台添加RSS订阅源并执行采集</div>
+            </div>
+
+            <!-- Feed Cards Grid -->
+            <div v-else class="news-grid">
+                <div v-for="item in feeds" :key="item.id" class="news-card" @click="openLink(item.source_url)">
+                    <div class="news-card-image news-card-image-placeholder">
+                        <span>📡</span>
+                    </div>
+                    <div class="news-card-content">
+                        <h3>{{ parseTitle(item.content) }}</h3>
+                        <p class="summary">{{ formatSummary(item.content) }}</p>
+                        <div class="meta">
+                            <span class="source">{{ item.sub_name }}</span>
+                            <span class="time-info" v-if="item.detected_at">{{ formatDate(item.detected_at) }}</span>
+                            <a v-if="item.source_url" :href="item.source_url" target="_blank" @click.stop class="read-time" style="color:#6366f1;">
+                                查看原文
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <pagination v-if="!loading && !isEmpty && totalPages > 1" :current-page="page" :total-pages="totalPages" @page-change="goToPage"></pagination>
         </div>
     </div>
     `

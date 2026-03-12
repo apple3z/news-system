@@ -44,3 +44,8 @@ def search_skills_public(keyword=''):
 def get_all_skills_simple():
     """Get all skills for listing page."""
     return skills_dal.get_all_skills_simple()
+
+
+def get_skill_rankings(limit=20):
+    """Get top skills by stars."""
+    return skills_dal.get_skill_rankings(limit=limit)

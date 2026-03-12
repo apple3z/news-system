@@ -17,6 +17,11 @@ def search_news(keyword='', category='', source='', date_from='', date_to='',
     )
 
 
+def get_news_by_id(news_id):
+    """Get a single news item by ID."""
+    return news_dal.get_news_by_id(news_id)
+
+
 def get_categories():
     """Get all news categories."""
     return news_dal.get_categories()
@@ -35,3 +40,18 @@ def get_crawl_logs(page=1, per_page=10):
 def search_by_keywords(keywords):
     """Search news by keyword list. Registered with proxy for cross-module use."""
     return news_dal.search_by_keywords(keywords)
+
+
+def get_daily_stats(days=30):
+    """Get daily news count stats."""
+    return news_dal.get_daily_stats(days)
+
+
+def get_daily_stats_by_type(days=30):
+    """Get daily stats grouped by source type (news/rss)."""
+    return news_dal.get_daily_stats_by_type(days)
+
+
+def get_crawl_daily_stats(days=30):
+    """Get daily crawl stats."""
+    return news_dal.get_crawl_daily_stats(days)

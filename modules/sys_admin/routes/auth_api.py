@@ -3,31 +3,9 @@
 """
 
 from flask import request, session, jsonify
-from functools import wraps
 from modules.sys_admin.routes import sys_admin_bp
 from modules.sys_admin.services import auth_service
-
-
-def login_required(f):
-    """登录鉴权装饰器"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({'code': 401, 'message': '未登录'}), 401
-        return f(*args, **kwargs)
-    return decorated
-
-
-def super_admin_required(f):
-    """超级管理员权限装饰器"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({'code': 401, 'message': '未登录'}), 401
-        if session.get('role') != 'super_admin':
-            return jsonify({'code': 403, 'message': '权限不足'}), 403
-        return f(*args, **kwargs)
-    return decorated
+from utils.auth import login_required, super_admin_required
 
 
 # ========== 登录/登出 ==========

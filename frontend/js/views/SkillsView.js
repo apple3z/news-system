@@ -1,5 +1,6 @@
 /**
- * SkillsView - Skills listing page with ad banner carousel and filters.
+ * SkillsView - Skills listing page with ad banner carousel, filters, and ranking sidebar.
+ * v2.6.2: Added skills ranking sidebar
  */
 const SkillsView = {
     data() {
@@ -11,6 +12,7 @@ const SkillsView = {
             loading: false,
             loaded: false,
             currentAdIndex: 0,
+            rankings: [],
             ads: [
                 { badge: '📢 推荐', title: 'Claude Code — AI 编程助手', summary: '让 AI 帮你写代码、审查代码、重构项目，开发效率提升 10 倍', btnText: '立即体验', link: 'https://claude.ai' },
                 { badge: '🔥 热门', title: 'Cursor — 下一代 AI 编辑器', summary: '内置 AI 对话，代码补全、调试、重构一站搞定', btnText: '了解更多', link: 'https://cursor.com' },
@@ -63,6 +65,16 @@ const SkillsView = {
                 console.error('加载分类失败', e);
             }
         },
+        async loadRankings() {
+            try {
+                const data = await API.get('/api/skills/rankings?limit=10');
+                if (data.code === 200) {
+                    this.rankings = data.data || [];
+                }
+            } catch (e) {
+                console.error('加载排行失败', e);
+            }
+        },
         selectCategory(cat) {
             this.category = this.category === cat ? '' : cat;
         },
@@ -80,6 +92,7 @@ const SkillsView = {
     mounted() {
         this.loadSkills();
         this.loadCategories();
+        this.loadRankings();
         this._adTimer = setInterval(() => this.nextAd(), 5000);
     },
     beforeUnmount() {
@@ -139,30 +152,54 @@ const SkillsView = {
                 <span v-if="category" class="current-filter">分类: {{ category }}</span>
             </div>
 
-            <!-- Loading -->
-            <div v-if="loading" class="skills-grid">
-                <div v-for="i in 8" :key="i" class="skill-card">
-                    <div class="loading-skeleton" style="height: 60px; width: 60px; border-radius: 12px; margin-bottom: 16px;"></div>
-                    <div class="loading-skeleton" style="height: 22px; width: 70%; margin-bottom: 12px;"></div>
-                    <div class="loading-skeleton" style="height: 16px; width: 90%;"></div>
+            <!-- Main + Sidebar Layout -->
+            <div class="news-layout">
+                <div class="news-main">
+                    <!-- Loading -->
+                    <div v-if="loading" class="skills-grid">
+                        <div v-for="i in 8" :key="i" class="skill-card">
+                            <div class="loading-skeleton" style="height: 60px; width: 60px; border-radius: 12px; margin-bottom: 16px;"></div>
+                            <div class="loading-skeleton" style="height: 22px; width: 70%; margin-bottom: 12px;"></div>
+                            <div class="loading-skeleton" style="height: 16px; width: 90%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Empty -->
+                    <div v-else-if="isEmpty" class="empty-state">
+                        <div class="empty-state-icon">🛠️</div>
+                        <div class="empty-state-text">未找到匹配的工具</div>
+                        <div class="empty-state-hint">试试调整筛选条件</div>
+                    </div>
+
+                    <!-- Skills Grid -->
+                    <div v-else class="skills-grid">
+                        <div v-for="s in filteredSkills" :key="s.id" class="skill-card" @click="$router.push('/skill/' + s.id)">
+                            <div class="skill-card-icon">🛠️</div>
+                            <h3 class="skill-card-name">{{ s.name }}</h3>
+                            <p class="skill-card-desc">{{ s.description || '暂无描述' }}</p>
+                            <div class="skill-card-footer">
+                                <span class="skill-card-tag" v-if="s.category">{{ s.category }}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Empty -->
-            <div v-else-if="isEmpty" class="empty-state">
-                <div class="empty-state-icon">🛠️</div>
-                <div class="empty-state-text">未找到匹配的工具</div>
-                <div class="empty-state-hint">试试调整筛选条件</div>
-            </div>
-
-            <!-- Skills Grid -->
-            <div v-else class="skills-grid">
-                <div v-for="s in filteredSkills" :key="s.id" class="skill-card" @click="$router.push('/skill/' + s.id)">
-                    <div class="skill-card-icon">🛠️</div>
-                    <h3 class="skill-card-name">{{ s.name }}</h3>
-                    <p class="skill-card-desc">{{ s.description || '暂无描述' }}</p>
-                    <div class="skill-card-footer">
-                        <span class="skill-card-tag" v-if="s.category">{{ s.category }}</span>
+                <!-- Ranking Sidebar -->
+                <div v-if="rankings.length > 0" class="news-sidebar">
+                    <div class="hot-rank">
+                        <h3 class="hot-rank-title">⭐ 热门排行</h3>
+                        <div class="hot-rank-list">
+                            <div v-for="(item, idx) in rankings" :key="item.id" class="hot-rank-item" @click="$router.push('/skill/' + item.id)">
+                                <span class="hot-rank-num" :class="'top-' + (idx + 1)">{{ idx + 1 }}</span>
+                                <div style="flex:1;min-width:0;">
+                                    <span class="hot-rank-title-text">{{ item.name }}</span>
+                                    <div style="font-size:11px;color:#999;margin-top:2px;">
+                                        ⭐ {{ item.stars }}
+                                        <span v-if="item.downloads"> · {{ item.downloads }} downloads</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
