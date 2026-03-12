@@ -49,7 +49,10 @@ c.execute('''CREATE TABLE IF NOT EXISTS crawl_log (
     status TEXT,
     total_news_count INTEGER DEFAULT 0,
     new_news_count INTEGER DEFAULT 0,
-    updated_news_count INTEGER DEFAULT 0
+    updated_news_count INTEGER DEFAULT 0,
+    sources TEXT,
+    error_message TEXT,
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
 )''')
 
 conn.commit()
