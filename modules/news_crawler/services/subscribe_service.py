@@ -62,3 +62,13 @@ def delete_subscription_simple(sub_id):
 def get_all_subscriptions_simple():
     """Get all subscriptions for public listing."""
     return subscribe_dal.get_all_subscriptions_simple()
+
+
+def get_feed_content(page=1, per_page=20, source=''):
+    """获取订阅内容列表（公开展示用）"""
+    return subscribe_dal.get_feed_content(page, per_page, source)
+
+
+def get_active_sources():
+    """获取活跃订阅源列表"""
+    return subscribe_dal.get_active_sources()

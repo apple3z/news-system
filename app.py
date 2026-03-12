@@ -13,11 +13,13 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from datetime import timedelta
 from flask import Flask, send_from_directory
 
 # 创建 Flask 应用
 app = Flask(__name__)
 app.secret_key = 'news-system-secret-key'
+app.permanent_session_lifetime = timedelta(minutes=30)
 
 # ========== 初始化模块（触发 proxy 注册） ==========
 import modules.news_crawler  # noqa: registers news.search_by_keywords with proxy
@@ -30,9 +32,15 @@ from modules.sys_admin.routes import sys_admin_bp
 app.register_blueprint(news_crawler_bp)
 app.register_blueprint(sys_admin_bp)
 
-# ========== 初始化订阅表 ==========
-from modules.news_crawler.dal.subscribe_dal import ensure_tables
-ensure_tables()
+# ========== 初始化表结构 ==========
+from modules.news_crawler.dal.subscribe_dal import ensure_tables as ensure_subscribe_tables
+from modules.sys_admin.dal.auth_dal import ensure_tables as ensure_auth_tables
+from modules.news_crawler.dal.datasource_dal import ensure_tables as ensure_ds_tables
+from modules.news_crawler.dal.datasource_dal import seed_default_sources
+ensure_subscribe_tables()
+ensure_auth_tables()
+ensure_ds_tables()
+seed_default_sources()
 
 # ========== 前端静态资源 ==========
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')
@@ -65,6 +73,6 @@ if __name__ == "__main__":
     print("Web服务 v4.0 启动! (前后端分离架构)")
     print("前端 SPA: http://localhost:5000")
     print("API: http://localhost:5000/api/...")
-    print("系统管理: http://localhost:5000/sys")
+    print("后台管理: http://localhost:5000/sys")
     print("=" * 50)
     app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)

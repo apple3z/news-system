@@ -23,7 +23,7 @@ SUB_TYPES = {
 }
 
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(SUBSCRIBE_DB)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS subscription (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

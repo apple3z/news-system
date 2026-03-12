@@ -13,7 +13,7 @@ const AppHeader = {
                 <router-link to="/" class="nav-link" exact>科技热点</router-link>
                 <router-link to="/skills" class="nav-link">Skills工具</router-link>
                 <router-link to="/subscribe" class="nav-link">订阅管理</router-link>
-                <router-link to="/sys" class="nav-link">系统管理</router-link>
+                <router-link to="/sys" class="nav-link">后台管理</router-link>
             </nav>
         </div>
     </header>

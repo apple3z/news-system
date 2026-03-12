@@ -10,6 +10,7 @@ const routes = [
     { path: '/skills', component: SkillsView },
     { path: '/skill/:id', component: SkillDetailView },
     { path: '/subscribe', component: SubscribeView },
+    { path: '/sys/login', component: LoginView },
     {
         path: '/sys',
         component: AdminLayout,
@@ -19,7 +20,8 @@ const routes = [
             { path: 'skills', component: SkillsAdmin },
             { path: 'subscribe', component: SubscribeAdmin },
             { path: 'versions', component: VersionsAdmin },
-            { path: 'docs', component: DocsAdmin }
+            { path: 'docs', component: DocsAdmin },
+            { path: 'accounts', component: AccountsAdmin }
         ]
     }
 ];

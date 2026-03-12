@@ -121,11 +121,14 @@ const NewsView = {
         this.loadFilters();
         this.loadHotNews();
         this.loadNews();
-        setInterval(() => {
+        this._bannerTimer = setInterval(() => {
             if (this.bannerSlides.length > 1) {
                 this.nextBanner();
             }
         }, 5000);
+    },
+    beforeUnmount() {
+        clearInterval(this._bannerTimer);
     },
     template: `
     <div class="theme-dark">

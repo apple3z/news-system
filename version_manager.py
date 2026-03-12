@@ -120,17 +120,25 @@ def get_version_info(filename):
 
 
 def _resolve_path(path):
-    """将逻辑路径解析为物理路径"""
+    """将逻辑路径解析为物理路径（含路径穿越防护）"""
     from path_utils import VERSION_HISTORY_DIR, DOCS_DIR
     if path.startswith('版本历史/'):
-        return os.path.join(VERSION_HISTORY_DIR, path[5:])
+        base = VERSION_HISTORY_DIR
+        real = os.path.realpath(os.path.join(base, path[5:]))
     elif path.startswith('版本历史'):
         return VERSION_HISTORY_DIR
     elif path.startswith('文档中心/'):
-        return os.path.join(DOCS_DIR, path[5:])
+        base = DOCS_DIR
+        real = os.path.realpath(os.path.join(base, path[5:]))
     elif path.startswith('文档中心'):
         return DOCS_DIR
-    return None
+    else:
+        return None
+
+    # 防止路径穿越：解析后的路径必须在基础目录下
+    if not real.startswith(os.path.realpath(base)):
+        return None
+    return real
 
 
 def list_documents(path):

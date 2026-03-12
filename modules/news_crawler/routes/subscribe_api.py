@@ -39,6 +39,23 @@ def api_subscribe_check():
     return jsonify({'code': 200, 'data': news_list})
 
 
+@news_crawler_bp.route('/api/subscribe/feed', methods=['GET'])
+def api_subscribe_feed():
+    """获取订阅内容列表（公开API，展示RSS订阅的实际内容）"""
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 20))
+    source = request.args.get('source', '')
+    result = subscribe_service.get_feed_content(page, per_page, source)
+    return jsonify({'code': 200, **result})
+
+
+@news_crawler_bp.route('/api/subscribe/sources', methods=['GET'])
+def api_subscribe_sources():
+    """获取活跃订阅源列表（公开API，用于前台筛选下拉框）"""
+    result = subscribe_service.get_active_sources()
+    return jsonify({'code': 200, 'data': result})
+
+
 # ========== Admin Subscriptions API ==========
 
 @news_crawler_bp.route('/api/admin/subscriptions')

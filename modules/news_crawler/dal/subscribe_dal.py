@@ -179,3 +179,42 @@ def get_all_subscriptions_simple():
     subs = c.fetchall()
     conn.close()
     return subs
+
+
+def get_feed_content(page=1, per_page=20, source=''):
+    """获取订阅内容列表（公开展示用，从 subscription_history 获取）"""
+    conn = _get_conn()
+    try:
+        sql = '''SELECT h.id, h.sub_id, h.sub_name, h.content, h.detected_at,
+                        s.url as source_url, s.sub_type
+                 FROM subscription_history h
+                 LEFT JOIN subscription s ON h.sub_id = s.id
+                 WHERE 1=1'''
+        count_sql = '''SELECT COUNT(*) FROM subscription_history h
+                       LEFT JOIN subscription s ON h.sub_id = s.id
+                       WHERE 1=1'''
+        params = []
+        if source:
+            sql += ' AND h.sub_name = ?'
+            count_sql += ' AND h.sub_name = ?'
+            params.append(source)
+        total = conn.execute(count_sql, params).fetchone()[0]
+        sql += ' ORDER BY h.detected_at DESC LIMIT ? OFFSET ?'
+        params.extend([per_page, (page - 1) * per_page])
+        rows = conn.execute(sql, params).fetchall()
+        data = [dict(r) for r in rows]
+        return {'data': data, 'total': total, 'page': page, 'per_page': per_page}
+    finally:
+        conn.close()
+
+
+def get_active_sources():
+    """获取活跃订阅源名称列表"""
+    conn = _get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT name FROM subscription WHERE is_active = 1 ORDER BY name"
+        ).fetchall()
+        return [r['name'] for r in rows]
+    finally:
+        conn.close()

@@ -26,7 +26,7 @@ python app.py
 | 新闻首页 | http://localhost:5000 |
 | Skills 工具 | http://localhost:5000/skills |
 | 订阅管理 | http://localhost:5000/subscribe |
-| 系统管理 | http://localhost:5000/sys |
+| 后台管理 | http://localhost:5000/sys |
 
 ---
 
@@ -38,17 +38,6 @@ python app.py
 |------|------|------|
 | **文档中心** | http://localhost:5000/sys/docs | 在线查看/编辑文档 |
 | **版本历史** | http://localhost:5000/sys/versions | 历史版本浏览 |
-
-### 系统管理入口
-
-```
-http://localhost:5000/sys
-    ├── 新闻管理
-    ├── Skills管理
-    ├── 订阅管理
-    ├── 版本历史
-    └── 文档中心  ← 点击进入文档中心
-```
 
 ### 文档文件位置
 

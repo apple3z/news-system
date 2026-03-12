@@ -17,6 +17,9 @@ def search_news(keyword='', category='', source='', date_from='', date_to='',
     conn = _get_conn()
     c = conn.cursor()
 
+    # Validate sort_order to prevent SQL injection
+    sort_order = 'ASC' if sort_order.upper() == 'ASC' else 'DESC'
+
     conditions = []
     params = []
 

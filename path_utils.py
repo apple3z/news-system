@@ -110,6 +110,7 @@ DOCS_DIR = get_docs_dir()
 NEWS_DB = get_db_path('news.db')
 SKILLS_DB = get_db_path('skills.db')
 SUBSCRIBE_DB = get_db_path('subscribe.db')
+SYSTEM_DB = get_db_path('system.db')
 
 
 if __name__ == '__main__':
