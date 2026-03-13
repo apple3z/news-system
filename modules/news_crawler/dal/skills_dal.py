@@ -122,17 +122,23 @@ def search_skills_public(keyword=''):
 
     if keyword:
         c.execute(
-            "SELECT id, name, description, category FROM skills "
-            "WHERE name LIKE ? OR description LIKE ? ORDER BY name",
-            (f"%{keyword}%", f"%{keyword}%")
+            "SELECT id, name, owner, description, chinese_intro, category, stars, downloads "
+            "FROM skills "
+            "WHERE name LIKE ? OR description LIKE ? OR chinese_intro LIKE ? ORDER BY name",
+            (f"%{keyword}%", f"%{keyword}%", f"%{keyword}%")
         )
     else:
-        c.execute("SELECT id, name, description, category FROM skills ORDER BY category, name")
+        c.execute(
+            "SELECT id, name, owner, description, chinese_intro, category, stars, downloads "
+            "FROM skills ORDER BY category, name"
+        )
 
     skills = c.fetchall()
     conn.close()
 
-    return [{'id': s[0], 'name': s[1], 'description': s[2], 'category': s[3]} for s in skills]
+    return [{'id': s[0], 'name': s[1], 'owner': s[2], 'description': s[3], 
+             'chinese_intro': s[4], 'category': s[5], 'stars': s[6] or 0, 
+             'downloads': s[7] or 0} for s in skills]
 
 
 def get_all_skills_simple():

@@ -27,6 +27,15 @@ def api_skills_categories_public():
     return jsonify({'code': 200, 'data': categories})
 
 
+@news_crawler_bp.route('/api/skills/<int:skill_id>')
+def api_skills_detail(skill_id):
+    """Get single skill detail (public, no login required)."""
+    skill = skills_service.get_skill(skill_id)
+    if not skill:
+        return jsonify({'code': 404, 'message': 'Skill not found'})
+    return jsonify({'code': 200, 'data': skill})
+
+
 @news_crawler_bp.route('/api/skills/rankings')
 def api_skills_rankings():
     """Get skills ranking by stars (public)."""

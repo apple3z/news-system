@@ -87,6 +87,26 @@ const SkillsView = {
         },
         openAd(link) {
             if (link) window.open(link, '_blank');
+        },
+        openSource(url) {
+            if (url) window.open(url, '_blank');
+        },
+        getAvatarUrl(owner) {
+            // 使用 GitHub 风格的头像服务
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(owner)}&background=random&size=32`;
+        },
+        handleAvatarError(e) {
+            // 头像加载失败时显示默认样式
+            e.target.style.display = 'none';
+        },
+        formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'k';
+            }
+            return num.toString();
         }
     },
     mounted() {
@@ -101,26 +121,16 @@ const SkillsView = {
     template: `
     <div class="theme-dark">
         <div class="container">
-            <!-- Ad Banner -->
-            <div class="hero-banner">
-                <div class="hero-content">
-                    <div class="hero-badge">{{ currentAd.badge }}</div>
-                    <h1 class="hero-title">{{ currentAd.title }}</h1>
-                    <p class="hero-summary">{{ currentAd.summary }}</p>
-                    <button class="hero-btn" @click="openAd(currentAd.link)">{{ currentAd.btnText }}</button>
-                    <div class="hero-dots">
-                        <span v-for="(ad, idx) in ads" :key="idx"
-                              class="hero-dot" :class="{ active: idx === currentAdIndex }"
-                              @click="currentAdIndex = idx"></span>
-                    </div>
-                </div>
-                <div class="hero-overlay"></div>
+            <!-- Page Header -->
+            <div class="page-header">
+                <h2 class="page-title">Skills</h2>
+                <p class="page-subtitle">Discover skills for your agents</p>
             </div>
 
             <!-- Category Tags -->
             <div class="category-tags" v-if="categories.length > 0">
                 <span class="category-tag-item" :class="{ active: category === '' }" @click="category = ''">
-                    全部
+                    All
                 </span>
                 <span v-for="cat in categories" :key="cat"
                       class="category-tag-item"
@@ -134,22 +144,22 @@ const SkillsView = {
             <div class="filters-bar">
                 <div class="filters-row">
                     <div class="filter-group">
-                        <input type="text" v-model="keyword" placeholder="搜索工具名称或描述..." class="search-input">
+                        <input type="text" v-model="keyword" placeholder="Search skills..." class="search-input">
                     </div>
                     <div class="filter-group">
                         <select v-model="category">
-                            <option value="">全部分类</option>
+                            <option value="">All categories</option>
                             <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
                         </select>
                     </div>
-                    <button class="btn-clear" @click="clearFilters" v-if="keyword || category">清除筛选</button>
+                    <button class="btn-clear" @click="clearFilters" v-if="keyword || category">Clear</button>
                 </div>
             </div>
 
             <!-- Stats -->
             <div class="content-stats">
-                <span>{{ filteredSkills.length }} 个工具</span>
-                <span v-if="category" class="current-filter">分类: {{ category }}</span>
+                <span>{{ filteredSkills.length }} skills</span>
+                <span v-if="category" class="current-filter">Category: {{ category }}</span>
             </div>
 
             <!-- Main + Sidebar Layout -->
@@ -167,18 +177,35 @@ const SkillsView = {
                     <!-- Empty -->
                     <div v-else-if="isEmpty" class="empty-state">
                         <div class="empty-state-icon">🛠️</div>
-                        <div class="empty-state-text">未找到匹配的工具</div>
-                        <div class="empty-state-hint">试试调整筛选条件</div>
+                        <div class="empty-state-text">No skills found</div>
+                        <div class="empty-state-hint">Try adjusting your filters</div>
                     </div>
 
                     <!-- Skills Grid -->
                     <div v-else class="skills-grid">
                         <div v-for="s in filteredSkills" :key="s.id" class="skill-card" @click="$router.push('/skill/' + s.id)">
-                            <div class="skill-card-icon">🛠️</div>
-                            <h3 class="skill-card-name">{{ s.name }}</h3>
-                            <p class="skill-card-desc">{{ s.description || '暂无描述' }}</p>
-                            <div class="skill-card-footer">
-                                <span class="skill-card-tag" v-if="s.category">{{ s.category }}</span>
+                            <div class="skill-badge" v-if="s.stars && s.stars > 100">
+                                <span>⭐ Highlighted</span>
+                            </div>
+                            <h3 class="skill-name">{{ s.name }}</h3>
+                            <p class="skill-desc">{{ s.chinese_intro || s.description || 'A powerful skill for your agent' }}</p>
+                            <div class="skill-footer">
+                                <div class="skill-author">
+                                    <span class="author-avatar" v-if="s.owner">
+                                        <img :src="getAvatarUrl(s.owner)" :alt="s.owner" @error="handleAvatarError">
+                                    </span>
+                                    <span class="author-name" v-if="s.owner">@{{ s.owner }}</span>
+                                </div>
+                                <div class="skill-stats">
+                                    <span class="skill-stat" title="Stars">
+                                        <span class="stat-icon">⭐</span>
+                                        <span class="stat-value">{{ formatNumber(s.stars || 0) }}</span>
+                                    </span>
+                                    <span class="skill-stat" title="Downloads">
+                                        <span class="stat-icon">📦</span>
+                                        <span class="stat-value">{{ formatNumber(s.downloads || 0) }}</span>
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -187,7 +214,7 @@ const SkillsView = {
                 <!-- Ranking Sidebar -->
                 <div v-if="rankings.length > 0" class="news-sidebar">
                     <div class="hot-rank">
-                        <h3 class="hot-rank-title">⭐ 热门排行</h3>
+                        <h3 class="hot-rank-title">⭐ Popular</h3>
                         <div class="hot-rank-list">
                             <div v-for="(item, idx) in rankings" :key="item.id" class="hot-rank-item" @click="$router.push('/skill/' + item.id)">
                                 <span class="hot-rank-num" :class="'top-' + (idx + 1)">{{ idx + 1 }}</span>
