@@ -73,6 +73,13 @@ const SkillDetailView = {
     template: `
     <div class="theme-dark">
         <div class="container" style="max-width:1200px;">
+            <!-- Back Button -->
+            <div class="back-button-container">
+                <button class="btn-back" @click="$router.back()">
+                    <span>←</span> 返回列表
+                </button>
+            </div>
+            
             <div v-if="loading" class="loading-state">
                 <div class="loading-spinner"></div>
                 <p>加载中...</p>
@@ -89,7 +96,7 @@ const SkillDetailView = {
                     </div>
                     <div class="skill-actions-header">
                         <button class="btn-download-primary" @click="downloadSkill" v-if="skill.download_url">
-                            <span>⬇️</span> Download
+                            <span>⬇️</span> 下载
                         </button>
                     </div>
                 </div>
@@ -98,22 +105,22 @@ const SkillDetailView = {
                 <div class="skill-info-bar">
                     <div class="info-item">
                         <span class="info-icon">👤</span>
-                        <span class="info-label">Author</span>
-                        <span class="info-value">{{ skill.owner || 'Unknown' }}</span>
+                        <span class="info-label">作者</span>
+                        <span class="info-value">{{ skill.owner || '未知' }}</span>
                     </div>
                     <div class="info-item" v-if="skill.stars !== undefined">
                         <span class="info-icon">⭐</span>
-                        <span class="info-label">Stars</span>
+                        <span class="info-label">星标</span>
                         <span class="info-value">{{ skill.stars }}</span>
                     </div>
                     <div class="info-item" v-if="skill.downloads !== undefined">
                         <span class="info-icon">📦</span>
-                        <span class="info-label">Downloads</span>
+                        <span class="info-label">下载</span>
                         <span class="info-value">{{ skill.downloads }}</span>
                     </div>
                     <div class="info-item" v-if="skill.created_at">
                         <span class="info-icon">📅</span>
-                        <span class="info-label">Created</span>
+                        <span class="info-label">创建时间</span>
                         <span class="info-value">{{ skill.created_at }}</span>
                     </div>
                 </div>
@@ -123,26 +130,26 @@ const SkillDetailView = {
                     <!-- Left Sidebar - Table of Contents -->
                     <div class="skill-sidebar">
                         <div class="toc-section">
-                            <h4 class="toc-title">Contents</h4>
+                            <h4 class="toc-title">目录</h4>
                             <ul class="toc-list">
-                                <li><a href="#overview" class="toc-link">Overview</a></li>
-                                <li><a href="#metadata" class="toc-link" v-if="hasMetadata">Metadata</a></li>
-                                <li><a href="#features" class="toc-link" v-if="skill.features">Features</a></li>
-                                <li><a href="#capabilities" class="toc-link" v-if="skill.capabilities">Capabilities</a></li>
-                                <li><a href="#implementation" class="toc-link" v-if="skill.implementation">Implementation</a></li>
-                                <li><a href="#use-cases" class="toc-link" v-if="skill.use_cases">Use Cases</a></li>
-                                <li><a href="#scenarios" class="toc-link" v-if="skill.scenarios">Scenarios</a></li>
-                                <li><a href="#readme" class="toc-link" v-if="skill.readme_content">Documentation</a></li>
+                                <li><a href="#overview" class="toc-link">概述</a></li>
+                                <li><a href="#metadata" class="toc-link" v-if="hasMetadata">元数据</a></li>
+                                <li><a href="#features" class="toc-link" v-if="skill.features">功能特点</a></li>
+                                <li><a href="#capabilities" class="toc-link" v-if="skill.capabilities">能力描述</a></li>
+                                <li><a href="#implementation" class="toc-link" v-if="skill.implementation">实现方式</a></li>
+                                <li><a href="#use-cases" class="toc-link" v-if="skill.use_cases">应用场景</a></li>
+                                <li><a href="#scenarios" class="toc-link" v-if="skill.scenarios">应用领域</a></li>
+                                <li><a href="#readme" class="toc-link" v-if="skill.readme_content">详细文档</a></li>
                             </ul>
                         </div>
                         
                         <div class="links-section" v-if="skill.url || skill.github_url">
-                            <h4 class="toc-title">Links</h4>
+                            <h4 class="toc-title">相关链接</h4>
                             <a :href="skill.url" target="_blank" class="external-link" v-if="skill.url">
-                                <span>🌐</span> Source
+                                <span>🌐</span> 来源网站
                             </a>
                             <a :href="skill.github_url" target="_blank" class="external-link" v-if="skill.github_url">
-                                <span>🐙</span> GitHub
+                                <span>🐙</span> GitHub 仓库
                             </a>
                         </div>
                     </div>
@@ -150,23 +157,23 @@ const SkillDetailView = {
                     <!-- Main Content Area -->
                     <div class="skill-main-content">
                         <div id="overview" class="content-section">
-                            <h2 class="section-title">Overview</h2>
-                            <p class="skill-description">{{ skill.chinese_intro || skill.description || 'No description available' }}</p>
+                            <h2 class="section-title">概述</h2>
+                            <p class="skill-description">{{ skill.chinese_intro || skill.description || '暂无描述' }}</p>
                             
                             <div v-if="skill.title && skill.title !== skill.name" class="skill-title-info">
-                                <strong>Full Title:</strong> {{ skill.title }}
+                                <strong>完整标题:</strong> {{ skill.title }}
                             </div>
 
                             <div v-if="skill.source" class="skill-source-info">
-                                <strong>Source:</strong> {{ skill.source }}
+                                <strong>来源:</strong> {{ skill.source }}
                             </div>
                         </div>
 
                         <div id="metadata" class="content-section" v-if="hasMetadata">
-                            <h2 class="section-title">Metadata</h2>
+                            <h2 class="section-title">元数据</h2>
                             <div class="metadata-grid">
                                 <div v-if="skill.tags" class="metadata-item">
-                                    <span class="metadata-label">Tags</span>
+                                    <span class="metadata-label">标签</span>
                                     <div class="metadata-tags">
                                         <span v-for="(tag, idx) in parseList(skill.tags)" :key="idx" class="metadata-tag">
                                             {{ tag }}
@@ -174,7 +181,7 @@ const SkillDetailView = {
                                     </div>
                                 </div>
                                 <div v-if="skill.languages" class="metadata-item">
-                                    <span class="metadata-label">Languages</span>
+                                    <span class="metadata-label">编程语言</span>
                                     <div class="metadata-tags">
                                         <span v-for="(lang, idx) in parseList(skill.languages)" :key="idx" class="metadata-tag">
                                             {{ lang }}
@@ -182,7 +189,7 @@ const SkillDetailView = {
                                     </div>
                                 </div>
                                 <div v-if="skill.frameworks" class="metadata-item">
-                                    <span class="metadata-label">Frameworks</span>
+                                    <span class="metadata-label">框架</span>
                                     <div class="metadata-tags">
                                         <span v-for="(fw, idx) in parseList(skill.frameworks)" :key="idx" class="metadata-tag">
                                             {{ fw }}
@@ -190,7 +197,7 @@ const SkillDetailView = {
                                     </div>
                                 </div>
                                 <div v-if="skill.tech_stack" class="metadata-item">
-                                    <span class="metadata-label">Tech Stack</span>
+                                    <span class="metadata-label">技术栈</span>
                                     <div class="metadata-tags">
                                         <span v-for="(tech, idx) in parseList(skill.tech_stack)" :key="idx" class="metadata-tag">
                                             {{ tech }}
@@ -201,7 +208,7 @@ const SkillDetailView = {
                         </div>
 
                         <div id="features" v-if="skill.features" class="content-section">
-                            <h2 class="section-title">Features</h2>
+                            <h2 class="section-title">功能特点</h2>
                             <div class="feature-tags">
                                 <span v-for="(tag, idx) in parseList(skill.features)" :key="idx" class="feature-tag">
                                     {{ tag }}
@@ -210,34 +217,34 @@ const SkillDetailView = {
                         </div>
 
                         <div id="capabilities" v-if="skill.capabilities" class="content-section">
-                            <h2 class="section-title">Capabilities</h2>
+                            <h2 class="section-title">能力描述</h2>
                             <p class="capability-text">{{ skill.capabilities }}</p>
                         </div>
 
                         <div id="implementation" v-if="skill.implementation" class="content-section">
-                            <h2 class="section-title">Implementation</h2>
+                            <h2 class="section-title">实现方式</h2>
                             <p class="capability-text">{{ skill.implementation }}</p>
                         </div>
 
                         <div id="use-cases" v-if="skill.use_cases" class="content-section">
-                            <h2 class="section-title">Use Cases</h2>
+                            <h2 class="section-title">应用场景</h2>
                             <p class="use-case-text">{{ skill.use_cases }}</p>
                         </div>
 
                         <div id="scenarios" v-if="skill.scenarios" class="content-section">
-                            <h2 class="section-title">Application Scenarios</h2>
+                            <h2 class="section-title">应用领域</h2>
                             <p class="use-case-text">{{ skill.scenarios }}</p>
                         </div>
 
                         <div id="readme" v-if="skill.readme_content && skill.readme_content !== '404: Not Found'" class="content-section">
-                            <h2 class="section-title">Documentation</h2>
+                            <h2 class="section-title">详细文档</h2>
                             <div class="readme-content" v-html="formatReadme(skill.readme_content)"></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div v-else class="empty-state">
-                <p>Skill not found</p>
+                <p>未找到该工具</p>
             </div>
         </div>
     </div>

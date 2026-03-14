@@ -3,9 +3,7 @@
 管理新闻、Skills、RSS的采集调度
 """
 
-import os
 import sys
-import subprocess
 from threading import Thread
 from config import PROJECT_ROOT
 from modules.news_crawler.dal.datasource_dal import (
@@ -17,9 +15,7 @@ def start_news_crawl():
     """启动新闻采集（后台线程）"""
     def run_crawl():
         try:
-            if PROJECT_ROOT not in sys.path:
-                sys.path.insert(0, PROJECT_ROOT)
-            from fetch_news import fetch_news
+            from modules.news_crawler.crawlers.fetch_news import fetch_news
             fetch_news()
         except Exception as e:
             print(f"News crawl failed: {e}")
@@ -29,9 +25,16 @@ def start_news_crawl():
 
 
 def start_skills_crawl():
-    """启动Skills采集（子进程）"""
-    script_path = os.path.join(PROJECT_ROOT, 'fetch_skills.py')
-    subprocess.Popen([sys.executable, script_path], cwd=PROJECT_ROOT)
+    """启动Skills采集（后台线程）"""
+    def run_crawl():
+        try:
+            from modules.news_crawler.crawlers.fetch_skills import fetch_skills
+            fetch_skills()
+        except Exception as e:
+            print(f"Skills crawl failed: {e}")
+
+    thread = Thread(target=run_crawl, daemon=True)
+    thread.start()
 
 
 def start_rss_crawl():
@@ -67,9 +70,7 @@ def start_unified_crawl(crawl_type='full'):
         try:
             if crawl_type in ('full', 'news'):
                 try:
-                    if PROJECT_ROOT not in sys.path:
-                        sys.path.insert(0, PROJECT_ROOT)
-                    from fetch_news import fetch_news
+                    from modules.news_crawler.crawlers.fetch_news import fetch_news
                     result = fetch_news() or {}
                     total += result.get('total', 0)
                     new_count += result.get('new', 0)
@@ -81,15 +82,12 @@ def start_unified_crawl(crawl_type='full'):
 
             if crawl_type in ('full', 'skill'):
                 try:
-                    script_path = os.path.join(PROJECT_ROOT, 'fetch_skills.py')
-                    result = subprocess.run(
-                        [sys.executable, script_path],
-                        cwd=PROJECT_ROOT, capture_output=True, timeout=120
-                    )
-                    if result.returncode == 0:
-                        detail['skill'] = 'completed'
-                    else:
-                        detail['skill'] = f'failed: exit code {result.returncode}'
+                    from modules.news_crawler.crawlers.fetch_skills import fetch_skills
+                    skill_result = fetch_skills() or {}
+                    total += skill_result.get('total', 0)
+                    new_count += skill_result.get('new', 0)
+                    updated += skill_result.get('updated', 0)
+                    detail['skill'] = 'completed'
                 except Exception as e:
                     detail['skill'] = f'failed: {e}'
 

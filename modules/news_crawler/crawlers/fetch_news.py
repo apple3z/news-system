@@ -767,9 +767,6 @@ def fetch_news():
             c.execute("SELECT id, summary FROM news WHERE link = ?", (n["link"],))
             row = c.fetchone()
 
-            if row and row[1]:  # 已有完整数据
-                continue
-
             print(f"-> {n['title'][:40]}")
 
             # RSS源已有time和summary，优先使用
@@ -793,7 +790,7 @@ def fetch_news():
             # 自动分类（v2.6.0）
             category = classify_news(n['title'], content, keywords)
 
-            # 记录详细信息
+            # 记录详细信息 - 无论新旧都记录
             news_detail_list.append({
                 'title': n['title'],
                 'link': n['link'],

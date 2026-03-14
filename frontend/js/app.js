@@ -11,6 +11,8 @@ const routes = [
     { path: '/skills', component: SkillsView },
     { path: '/skill/:id', component: SkillDetailView },
     { path: '/subscribe', component: SubscribeView },
+    { path: '/subscribe-digest', component: SubscribeDigestView },
+    { path: '/subscribe/:id', component: SubscribeDetailView },
     { path: '/sys/login', component: LoginView },
     {
         path: '/sys',

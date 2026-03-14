@@ -405,7 +405,7 @@ const NewsAdmin = {
         </div>
 
         <!-- 数据源编辑弹窗 -->
-        <modal-dialog v-if="showModal" @close="showModal = false"
+        <modal-dialog :show="showModal" @close="showModal = false"
                       :title="editMode ? '编辑数据源' : '添加数据源'">
             <div class="modal-form">
                 <div class="form-group">
