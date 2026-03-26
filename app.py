@@ -29,10 +29,12 @@ import modules.sys_admin      # noqa
 from modules.news_crawler.routes import news_crawler_bp
 from modules.sys_admin.routes import sys_admin_bp
 from modules.news_crawler.kernel.api.kernel_api import kernel_bp
+from modules.semantic.routes.semantic_api import semantic_bp
 
 app.register_blueprint(news_crawler_bp)
 app.register_blueprint(sys_admin_bp)
 app.register_blueprint(kernel_bp)
+app.register_blueprint(semantic_bp)
 
 # ========== 初始化表结构 ==========
 from modules.news_crawler.dal.subscribe_dal import ensure_tables as ensure_subscribe_tables
@@ -45,6 +47,11 @@ ensure_auth_tables()
 ensure_ds_tables()
 seed_default_sources()
 ensure_kernel_tables()
+
+# ========== 初始化语义爬虫 ==========
+from modules.semantic.dal.semantic_dal import ensure_tables as ensure_semantic_tables
+ensure_semantic_tables()
+print("[Semantic] 语义爬虫模块已就绪")
 
 # ========== 初始化爬虫内核 ==========
 from modules.news_crawler.kernel.dal.task_dal import list_tasks

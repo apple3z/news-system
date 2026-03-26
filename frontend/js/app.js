@@ -14,6 +14,8 @@ const routes = [
     { path: '/subscribe-digest', component: SubscribeDigestView },
     { path: '/subscribe-reader', component: SubscribeReaderView },
     { path: '/subscribe/:id', component: SubscribeDetailView },
+    { path: '/semantic', component: SemanticHomeView },
+    { path: '/semantic/:id', component: SemanticDetailView },
     { path: '/sys/login', component: LoginView },
     {
         path: '/sys',

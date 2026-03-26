@@ -4862,3 +4862,497 @@ tr:last-child td {
   padding: 6px 12px;
   font-size: 12px;
 }
+
+/* ===== Semantic Crawler ===== */
+
+/* 首页 */
+.semantic-home {
+  padding: 20px 0;
+}
+
+.semantic-home .stat-cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.semantic-home .stat-card {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.semantic-home .stat-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--light-accent);
+}
+
+.semantic-home .stat-number.text-warning { color: #ff9800; }
+.semantic-home .stat-number.text-success { color: #4CAF50; }
+
+.semantic-home .stat-label {
+  color: #666;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.semantic-home .action-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 30px;
+  color: white;
+  margin-bottom: 24px;
+}
+
+.semantic-home .quick-start h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.semantic-home .quick-start p {
+  margin: 0 0 16px;
+  opacity: 0.9;
+}
+
+.semantic-home .btn-lg {
+  padding: 12px 32px;
+  font-size: 16px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.semantic-home .btn-lg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.semantic-home .tasks-section h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.semantic-home .task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.semantic-home .task-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.semantic-home .task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.semantic-home .task-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--light-text-primary);
+}
+
+.semantic-home .task-query {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.semantic-home .progress-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.semantic-home .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.3s;
+}
+
+.semantic-home .progress-text {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.semantic-home .task-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 12px;
+}
+
+.semantic-home .task-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.semantic-home .task-actions .btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.semantic-home .task-actions .btn-primary {
+  background: var(--light-accent);
+  color: white;
+  border: none;
+}
+
+.semantic-home .task-actions .btn-danger {
+  color: #f44336;
+  border-color: #f44336;
+}
+
+.semantic-home .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.semantic-home .empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+/* 弹窗表单 */
+.modal-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.source-toggles {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.source-toggle {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.source-toggle.active {
+  background: var(--light-accent);
+  color: white;
+  border-color: var(--light-accent);
+}
+
+/* 详情页 */
+.semantic-detail {
+  padding: 20px 0;
+}
+
+.semantic-detail .detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.semantic-detail .detail-header h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.semantic-detail .btn-back {
+  padding: 8px 16px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.semantic-detail .info-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.semantic-detail .info-query {
+  margin-bottom: 16px;
+}
+
+.semantic-detail .info-query label {
+  font-size: 12px;
+  color: #666;
+}
+
+.semantic-detail .info-query p {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.semantic-detail .progress-section {
+  margin-bottom: 16px;
+}
+
+.semantic-detail .progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.semantic-detail .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.semantic-detail .progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.semantic-detail .info-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.semantic-detail .stat {
+  text-align: center;
+}
+
+.semantic-detail .stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--light-accent);
+}
+
+.semantic-detail .stat-label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+}
+
+.semantic-detail .inner-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--light-border);
+  margin-bottom: 20px;
+}
+
+.semantic-detail .tab-btn {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: -2px;
+}
+
+.semantic-detail .tab-btn.active {
+  color: var(--light-accent);
+  border-bottom-color: var(--light-accent);
+}
+
+.semantic-detail .card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.semantic-detail .card h4 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: var(--light-text-primary);
+}
+
+.semantic-detail .card h5 {
+  margin: 12px 0 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.semantic-detail .summary-text {
+  line-height: 1.6;
+  color: #333;
+}
+
+.semantic-detail .sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.semantic-detail .source-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.semantic-detail .source-name {
+  font-size: 13px;
+}
+
+.semantic-detail .source-count {
+  font-size: 13px;
+  color: #666;
+}
+
+.semantic-detail .entity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.semantic-detail .entity-tag {
+  padding: 4px 10px;
+  background: #e3f2fd;
+  color: #1976D2;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.semantic-detail .entity-tag.product {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.semantic-detail .wordcloud-container {
+  min-height: 300px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.semantic-detail .wordcloud-word {
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--light-accent);
+}
+
+.semantic-detail .wordcloud-word:hover {
+  transform: scale(1.1);
+  text-decoration: underline;
+}
+
+.semantic-detail .chart-container {
+  height: 250px;
+  position: relative;
+}
+
+.semantic-detail .trend-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #666;
+}
+
+.semantic-detail .content-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.semantic-detail .content-item {
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.semantic-detail .content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.semantic-detail .content-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--light-accent);
+  text-decoration: none;
+}
+
+.semantic-detail .content-title:hover {
+  text-decoration: underline;
+}
+
+.semantic-detail .relevance-badge {
+  padding: 2px 8px;
+  background: #e0e0e0;
+  color: #666;
+  border-radius: 10px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.semantic-detail .relevance-badge.high {
+  background: #4CAF50;
+  color: white;
+}
+
+.semantic-detail .content-summary {
+  font-size: 13px;
+  color: #666;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+
+.semantic-detail .content-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #999;
+}
+
+.semantic-detail .empty {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
+
+/* 导航高亮 */
+.nav-link.highlight {
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  color: white !important;
+  border-radius: 4px;
+  padding: 4px 12px !important;
+}
