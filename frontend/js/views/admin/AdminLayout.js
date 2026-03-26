@@ -45,6 +45,7 @@ const AdminLayout = {
                 <router-link to="/sys/news" class="tab-l2-btn" exact-active-class="active">采集工作台</router-link>
                 <router-link to="/sys/skills" class="tab-l2-btn" exact-active-class="active">Skill管理</router-link>
                 <router-link to="/sys/subscribe" class="tab-l2-btn" exact-active-class="active">订阅管理</router-link>
+                <router-link to="/sys/kernel" class="tab-l2-btn" exact-active-class="active">爬虫内核</router-link>
             </div>
 
             <!-- Level 2 tabs: Base group -->
@@ -61,7 +62,7 @@ const AdminLayout = {
     computed: {
         isCrawlerGroup() {
             const p = this.$route.path;
-            return p.startsWith('/sys/news') || p.startsWith('/sys/skills') || p.startsWith('/sys/subscribe') || p === '/sys';
+            return p.startsWith('/sys/news') || p.startsWith('/sys/skills') || p.startsWith('/sys/subscribe') || p.startsWith('/sys/kernel') || p === '/sys';
         },
         isBaseGroup() {
             const p = this.$route.path;

@@ -4699,8 +4699,166 @@ tr:last-child td {
   .rss-reader-container {
     grid-template-columns: 1fr;
   }
-  
+
   .rss-sidebar {
     display: none;
   }
+}
+
+/* ===== Crawler Kernel View ===== */
+.kernel-view {
+  padding: 16px 0;
+}
+
+.kernel-view .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.kernel-view .page-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--light-text-primary);
+}
+
+.kernel-view .tab-content {
+  padding: 0;
+}
+
+.kernel-view .empty-cell {
+  text-align: center;
+  color: #999;
+  padding: 30px !important;
+}
+
+.kernel-view .section {
+  margin-top: 20px;
+}
+
+.kernel-view .section h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--light-text-secondary);
+}
+
+.kernel-view .running-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kernel-view .running-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid var(--light-border);
+}
+
+/* 弹窗表单 */
+.modal-form .form-group {
+  margin-bottom: 16px;
+}
+
+.modal-form .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--light-text-secondary);
+  font-weight: 500;
+}
+
+.modal-form .form-group input[type="text"],
+.modal-form .form-group input[type="number"],
+.modal-form .form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--light-border);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.modal-form .form-group input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+.modal-form .checkbox-group {
+  display: flex;
+  gap: 16px;
+}
+
+.modal-form .checkbox-group label {
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+}
+
+.modal-form .cron-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-form .cron-inputs input {
+  width: 80px;
+  text-align: center;
+}
+
+.modal-form .cron-inputs span {
+  font-size: 18px;
+  color: var(--light-text-muted);
+}
+
+.modal-form .form-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--light-text-muted);
+}
+
+.modal-form .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--light-border);
+}
+
+/* 按钮样式 */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--light-accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1976D2;
+}
+
+.btn-default {
+  background: #f5f5f5;
+  color: var(--light-text-primary);
+  border: 1px solid var(--light-border);
+}
+
+.btn-default:hover {
+  background: #e0e0e0;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
 }

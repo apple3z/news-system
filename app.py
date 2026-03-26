@@ -28,19 +28,42 @@ import modules.sys_admin      # noqa
 # ========== 注册 API 蓝图 ==========
 from modules.news_crawler.routes import news_crawler_bp
 from modules.sys_admin.routes import sys_admin_bp
+from modules.news_crawler.kernel.api.kernel_api import kernel_bp
 
 app.register_blueprint(news_crawler_bp)
 app.register_blueprint(sys_admin_bp)
+app.register_blueprint(kernel_bp)
 
 # ========== 初始化表结构 ==========
 from modules.news_crawler.dal.subscribe_dal import ensure_tables as ensure_subscribe_tables
 from modules.sys_admin.dal.auth_dal import ensure_tables as ensure_auth_tables
 from modules.news_crawler.dal.datasource_dal import ensure_tables as ensure_ds_tables
 from modules.news_crawler.dal.datasource_dal import seed_default_sources
+from modules.news_crawler.kernel.dal.task_dal import ensure_kernel_tables
 ensure_subscribe_tables()
 ensure_auth_tables()
 ensure_ds_tables()
 seed_default_sources()
+ensure_kernel_tables()
+
+# ========== 初始化爬虫内核 ==========
+from modules.news_crawler.kernel.dal.task_dal import list_tasks
+from modules.news_crawler.kernel import DEFAULT_TASKS, init_kernel
+
+# 检查是否已有任务，没有则创建默认任务
+existing_tasks = list_tasks()
+if not existing_tasks:
+    print("[Kernel] 初始化默认任务...")
+    kernel = init_kernel()
+    for task_template in DEFAULT_TASKS:
+        kernel.create_task(task_template)
+    print(f"[Kernel] 已创建 {len(DEFAULT_TASKS)} 个默认任务")
+else:
+    print(f"[Kernel] 发现 {len(existing_tasks)} 个已存在任务，跳过初始化")
+
+# 启动内核调度器
+kernel = init_kernel()
+print("[Kernel] 爬虫内核已启动")
 
 # ========== 前端静态资源 ==========
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')

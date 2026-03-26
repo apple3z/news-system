@@ -23,6 +23,7 @@ const routes = [
             { path: 'news', component: NewsAdmin },
             { path: 'skills', component: SkillsAdmin },
             { path: 'subscribe', component: SubscribeAdmin },
+            { path: 'kernel', component: CrawlerKernelView },
             { path: 'versions', component: VersionsAdmin },
             { path: 'docs', component: DocsAdmin },
             { path: 'accounts', component: AccountsAdmin }
