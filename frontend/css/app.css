@@ -4514,6 +4514,57 @@ tr:last-child td {
   border-color: var(--dark-accent);
 }
 
+.translate-btn {
+  background: rgba(0, 210, 255, 0.1);
+  border-color: rgba(0, 210, 255, 0.3);
+  color: var(--dark-accent);
+}
+
+.translate-btn:hover:not(:disabled) {
+  background: rgba(0, 210, 255, 0.2);
+  border-color: var(--dark-accent);
+}
+
+.translate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-trans-btn {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #ffc107;
+}
+
+.toggle-trans-btn:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: #ffc107;
+}
+
+.translation-content {
+  background: rgba(0, 210, 255, 0.05);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  margin-top: var(--space-lg);
+}
+
+.translation-badge {
+  display: inline-block;
+  background: var(--dark-accent);
+  color: white;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.translation-content p {
+  color: var(--dark-text-primary);
+  line-height: 1.8;
+  font-size: var(--font-size-base);
+}
+
 .detail-title {
   font-size: var(--font-size-2xl);
   color: var(--dark-text-primary);

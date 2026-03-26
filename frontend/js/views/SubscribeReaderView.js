@@ -14,7 +14,12 @@ const SubscribeReaderView = {
             timeFilter: 'week',
             loading: false,
             loaded: false,
-            sidebarCollapsed: false
+            sidebarCollapsed: false,
+            // 翻译相关
+            isTranslating: false,
+            translatedContent: null,
+            showTranslation: false,
+            currentLang: 'en'
         };
     },
     computed: {
@@ -123,6 +128,47 @@ const SubscribeReaderView = {
         setTimeFilter(filter) {
             this.timeFilter = filter;
             this.loadData();
+        },
+        // 翻译相关
+        async translateContent(text, targetLang = 'zh-CN') {
+            if (!text || this.isTranslating) return;
+            this.isTranslating = true;
+            this.translatedContent = null;
+            try {
+                // 使用 MyMemory 免费翻译 API
+                const langPair = `en|${targetLang}`;
+                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.substring(0, 500))}&langpair=${langPair}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.responseStatus === 200 && data.responseData) {
+                    this.translatedContent = data.responseData.translatedText;
+                    this.showTranslation = true;
+                }
+            } catch (e) {
+                console.error('翻译失败:', e);
+            } finally {
+                this.isTranslating = false;
+            }
+        },
+        toggleTranslation() {
+            this.showTranslation = !this.showTranslation;
+        },
+        async translateFeed(feed) {
+            if (!feed) return;
+            // 翻译标题和摘要/内容
+            let textToTranslate = feed.title || '';
+            if (feed.summary) {
+                textToTranslate += ' ' + this.stripHtml(feed.summary).substring(0, 300);
+            }
+            await this.translateContent(textToTranslate);
+        },
+        clearTranslation() {
+            this.translatedContent = null;
+            this.showTranslation = false;
+        },
+        onFeedSelected(feed) {
+            this.selectFeed(feed);
+            this.clearTranslation();
         }
     },
     mounted() {
@@ -188,7 +234,7 @@ const SubscribeReaderView = {
                     <div v-for="feed in currentSourceFeeds" :key="feed.id"
                          class="article-item"
                          :class="{ active: selectedFeed && selectedFeed.id === feed.id }"
-                         @click="selectFeed(feed)">
+                         @click="onFeedSelected(feed)">
                         <div class="article-item-header">
                             <span class="source-badge">{{ feed.sub_name }}</span>
                             <span class="time-badge">{{ formatTime(feed.detected_at) }}</span>
@@ -221,6 +267,15 @@ const SubscribeReaderView = {
                             <button class="action-btn" @click="openExternal(selectedFeed.link)">
                                 🌐 原文
                             </button>
+                            <button class="action-btn translate-btn"
+                                    @click="translateFeed(selectedFeed)"
+                                    :disabled="isTranslating">
+                                {{ isTranslating ? '翻译中...' : '🔤 翻译' }}
+                            </button>
+                            <button v-if="translatedContent" class="action-btn toggle-trans-btn"
+                                    @click="toggleTranslation()">
+                                {{ showTranslation ? '📃 原文' : '📝 译文' }}
+                            </button>
                         </div>
                     </div>
                     
@@ -241,7 +296,11 @@ const SubscribeReaderView = {
                         <img :src="selectedFeed.thumbnail" alt="thumbnail" @error="$event.target.style.display='none'">
                     </div>
                     
-                    <div class="detail-body" v-html="selectedFeed.content || selectedFeed.summary"></div>
+                    <div v-if="showTranslation && translatedContent" class="detail-body translation-content">
+                        <div class="translation-badge">📝 中文翻译</div>
+                        <p>{{ translatedContent }}</p>
+                    </div>
+                    <div v-else class="detail-body" v-html="selectedFeed.content || selectedFeed.summary"></div>
                     
                     <div class="detail-footer">
                         <button class="primary-btn" @click="openExternal(selectedFeed.link)">
