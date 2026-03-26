@@ -75,10 +75,85 @@ def get_all_subs():
     return rows
 
 
+def fetch_article_fulltext(url):
+    """抓取文章原文页面，提取正文 HTML 内容
+    v2.6.2: 解决 RSS feed 仅含摘要、内容为空的问题
+    """
+    if not url:
+        return None
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36'
+        }
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+        resp.encoding = resp.apparent_encoding or 'utf-8'
+
+        soup = BeautifulSoup(resp.text, 'html.parser')
+
+        # 移除无关标签
+        for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'aside',
+                         'iframe', 'noscript', 'form', 'button']):
+            tag.decompose()
+
+        # 常见正文容器选择器（按优先级）
+        selectors = [
+            'article',
+            '[class*="article-content"]', '[class*="article-body"]',
+            '[class*="post-content"]', '[class*="post-body"]',
+            '[class*="entry-content"]', '[class*="entry-body"]',
+            '[class*="content-body"]', '[class*="story-body"]',
+            '[class*="main-content"]', '[class*="blog-content"]',
+            '[itemprop="articleBody"]',
+            '.content', '#content', 'main',
+        ]
+
+        content_el = None
+        for sel in selectors:
+            content_el = soup.select_one(sel)
+            if content_el and len(content_el.get_text(strip=True)) > 100:
+                break
+            content_el = None
+
+        if content_el:
+            # 保留 HTML 结构（段落、图片、链接等）
+            html_content = str(content_el)
+            text_len = len(content_el.get_text(strip=True))
+            if text_len > 50:
+                return html_content
+
+        # fallback: 取 body 中最长的文本块
+        if soup.body:
+            paragraphs = soup.body.find_all(['p', 'div'], recursive=True)
+            # 按文本长度排序，取前 N 个
+            long_blocks = sorted(paragraphs, key=lambda p: len(p.get_text(strip=True)), reverse=True)
+            collected = []
+            total_len = 0
+            for block in long_blocks[:30]:
+                text = block.get_text(strip=True)
+                if len(text) > 30:
+                    collected.append(str(block))
+                    total_len += len(text)
+                    if total_len > 3000:
+                        break
+            if total_len > 100:
+                return '\n'.join(collected)
+
+        return None
+    except Exception as e:
+        print(f"  [WARN] fetch fulltext failed: {url} - {e}")
+        return None
+
+
+# 内容长度阈值：低于此值认为内容不完整，需要抓取全文
+MIN_CONTENT_LENGTH = 200
+
+
 def parse_rss_feed(url):
     """使用 feedparser 解析 RSS feed，返回结构化数据列表
     v2.6.2: 修复 summary 截断、content 缺失、author/thumbnail 提取
     v2.6.4: 增加 requests 预取，解决部分 RSS 源需要 User-Agent 的问题
+    v2.6.9: 对内容过短的条目自动抓取原文全文
     """
     try:
         # 先尝试用 requests 获取（带 User-Agent）
@@ -189,6 +264,23 @@ def parse_rss_feed(url):
                 'thumbnail': thumbnail,
                 'comments': comments  # v2.6.5 新增
             })
+
+        # v2.6.9: 对内容过短的条目，抓取原文全文
+        import re as _re
+        for item in items:
+            content_text = _re.sub(r'<[^>]*>', '', item.get('content', '')).strip()
+            if len(content_text) < MIN_CONTENT_LENGTH and item.get('link'):
+                fulltext = fetch_article_fulltext(item['link'])
+                if fulltext:
+                    fulltext_text = _re.sub(r'<[^>]*>', '', fulltext).strip()
+                    # 只在全文比原内容更长时替换
+                    if len(fulltext_text) > len(content_text):
+                        item['content'] = fulltext
+                        # 如果 summary 也很短，从全文中提取
+                        if len(_re.sub(r'<[^>]*>', '', item.get('summary', '')).strip()) < 100:
+                            item['summary'] = fulltext_text[:500]
+                        print(f"    [FULL] {item['title'][:30]} -> {len(fulltext_text)} chars")
+
         return items
     except Exception as e:
         print(f"RSS parsing failed: {url} - {e}")

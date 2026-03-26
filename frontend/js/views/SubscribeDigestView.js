@@ -256,7 +256,7 @@ const SubscribeDigestView = {
             <div class="advanced-filters">
                 <div class="filter-section">
                     <div class="filter-group">
-                        <select v-model="timeFilter" class="filter-select">
+                        <select v-model="timeFilter" @change="loadDigestFeeds()" class="filter-select">
                             <option value="today">今日</option>
                             <option value="week">本周</option>
                             <option value="month">本月</option>
@@ -296,7 +296,7 @@ const SubscribeDigestView = {
                                     💬 {{ feed.comments }}
                                 </span>
                                 <span class="weight-display" :title="'优先级：' + (sourceWeights[feed.sub_name] || 3) + '星'">
-                                    <span v-for="w in Math.min(sourceWeights[feed.sub_name] || 3, 3)" :key="w" class="mini-star">⭐</span>
+                                    <span v-for="w in (sourceWeights[feed.sub_name] || 3)" :key="w" class="mini-star">⭐</span>
                                 </span>
                             </div>
                         </div>
